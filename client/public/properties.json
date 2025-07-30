@@ -1,0 +1,38 @@
+[
+  {
+    "id": 1,
+    "imageUrl": "https://via.placeholder.com/400x300?text=Townhouse",
+    "price": "2095",
+    "type": "Townhouse",
+    "bedrooms": 2,
+    "bathrooms": 2,
+    "sqft": 1200,
+    "city": "Calgary",
+    "state": "AB",
+    "datePosted": "Jul 29, 2025"
+  },
+  {
+    "id": 2,
+    "imageUrl": "https://via.placeholder.com/400x300?text=Basement",
+    "price": "1275",
+    "type": "Basement",
+    "bedrooms": 2,
+    "bathrooms": 2,
+    "sqft": 1066,
+    "city": "Calgary",
+    "state": "AB",
+    "datePosted": "Jul 29, 2025"
+  },
+  {
+    "id": 3,
+    "imageUrl": "https://via.placeholder.com/400x300?text=Condo+Unit",
+    "price": "1850",
+    "type": "Condo Unit",
+    "bedrooms": 2,
+    "bathrooms": 2,
+    "sqft": 905,
+    "city": "Calgary",
+    "state": "AB",
+    "datePosted": "Jul 29, 2025"
+  }
+]
