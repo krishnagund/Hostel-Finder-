@@ -5,6 +5,7 @@ import jwt from 'jsonwebtoken'; // used for creating and verifying JSON Web Toke
 import userModel from '../models/userModel.js'; // importing the userModel to interact with the user collection in the MongoDB database
 import transporter from '../config/nodemailer.js';
 import { EMAIL_VERIFY_TEMPLATE,PASSWORD_RESET_TEMPLATE } from '../config/emailTemplates.js'; // importing the nodemailer transporter to send emails
+
 export const register = async(req,res) =>{
     console.log("req.body:", req.body);
     const {name,email,password,role} = req.body ;
@@ -39,7 +40,16 @@ export const register = async(req,res) =>{
             }
             await transporter.sendMail(mailOPtions); // sending the email using the transporter object
 
-            return res.json({success : true})
+            return res.json({
+  success: true,
+  message: "User registered successfully",
+  user: {
+    name: user.name,
+    email: user.email,
+    role: user.role, // ✅ important
+  },
+});
+
 
          }
          catch (error) {
@@ -70,7 +80,16 @@ export const login = async(req,res) =>{
         const token = jwt.sign({id : user._id},process.env.JWT_SECRET,{expiresIn : '7d'}); // creating a JWT token for the user
         res.cookie('token',token,{httpOnly : true,secure : process.env.NODE_ENV === 'production',sameSite:process.env.NODE_ENV === 'production' ? 'none' : 'strict',maxAge : 7*24*60*60*1000}); // setting the token as a cookie in the response
     
-        return res.json({success : true})
+        return res.json({
+  success: true,
+  message: "User logged in successfully",
+  user: {
+    name: user.name,
+    email: user.email,
+    role: user.role, // ✅ include this
+  },
+});
+
     }
     catch(error){
         res.json({success : false , message : error.message})

@@ -1,15 +1,15 @@
-import { useState } from "react";
+import { useState,useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { assets } from "../assets/assets";
 import LoginModal from "./LoginModal";
 import { useContext } from "react";
-import { AppContext } from "../context/Appcontext";
+import { AppContext } from "../context/AppContext";
 
 
 const Home = () => {
   const [showLoginModal, setShowLoginModal] = useState(false);
   const [authState, setAuthState] = useState("Login"); // 'Login' or 'Sign Up'
-  const { isLoggedin } = useContext(AppContext);
+  const { isLoggedin,userData } = useContext(AppContext);
 
   const navigate = useNavigate();
 

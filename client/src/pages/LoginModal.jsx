@@ -3,6 +3,7 @@ import { assets } from "../assets/assets";
 import { AppContext } from "../context/Appcontext";
 import axios from "axios";
 import { toast } from "react-toastify";
+import { useNavigate } from "react-router-dom";
 
 // 👇 Optional: You can also move this into a separate file and import it
 const ResetPasswordForm = ({ backendurl, onBack }) => {
@@ -138,6 +139,7 @@ const ResetPasswordForm = ({ backendurl, onBack }) => {
 };
 
 const LoginModal = ({ isOpen, onClose }) => {
+  const navigate = useNavigate();
   const { backendurl, setIsLoggedin, getUserData } = useContext(AppContext);
   const [state, setState] = useState("Login"); // 'Login' or 'Sign Up'
   const [showResetPassword, setShowResetPassword] = useState(false);
@@ -146,34 +148,48 @@ const LoginModal = ({ isOpen, onClose }) => {
   const [password, setPassword] = useState("");
   const [role, setRole] = useState("student");
 
-  const onSubmitHandler = async (e) => {
-    e.preventDefault();
-    try {
-      axios.defaults.withCredentials = true;
+const onSubmitHandler = async (e) => {
+  e.preventDefault();
+  try {
+    axios.defaults.withCredentials = true;
 
-      const url =
-        state === "Sign Up"
-          ? backendurl + "/api/auth/register"
-          : backendurl + "/api/auth/login";
+    const url =
+      state === "Sign Up"
+        ? backendurl + "/api/auth/register"
+        : backendurl + "/api/auth/login";
 
-      const payload =
-        state === "Sign Up"
-          ? { name, email, password, role }
-          : { email, password };
+    const payload =
+      state === "Sign Up"
+        ? { name, email, password, role }
+        : { email, password };
 
-      const { data } = await axios.post(url, payload);
+    const { data } = await axios.post(url, payload);
 
-      if (data.success) {
-        setIsLoggedin(true);
-        getUserData();
-        onClose();
-      } else {
-        toast.error(data.message || "Failed");
-      }
-    } catch (error) {
-      toast.error(error.message || "Something went wrong");
+    console.log("Login/Register Response:", data); // debug here
+
+    if (data.success) {
+      setIsLoggedin(true);
+      getUserData(); 
+      onClose();
+
+      const role = data.user?.role;
+
+      if (role === "student") {
+    navigate("/student");
+  } else if (role === "owner") {
+    navigate("/owner");
+  } else {
+    navigate("/");
+  }
+    } else {
+      toast.error(data.message || "Failed");
     }
-  };
+  } catch (error) {
+    toast.error(error.message || "Something went wrong");
+  }
+};
+
+
 
   if (!isOpen) return null;
 
