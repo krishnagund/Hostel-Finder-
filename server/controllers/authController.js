@@ -8,9 +8,9 @@ import { EMAIL_VERIFY_TEMPLATE,PASSWORD_RESET_TEMPLATE } from '../config/emailTe
 
 export const register = async(req,res) =>{
     console.log("req.body:", req.body);
-    const {name,email,password,role} = req.body ;
+    const {name,email,password,role,phone} = req.body ;
 
-   if(!name || !email || !password || !role){
+   if(!name || !email || !password || !role || !phone){
        return res.json({success : false , message : "missing details"})
     }
 
@@ -24,7 +24,7 @@ export const register = async(req,res) =>{
 
             const hashedPassword = await bcrypt.hash(password,10);
 
-            const user = new userModel ({name,email,password:hashedPassword,role}); // creating a new user object with the provided details
+            const user = new userModel ({name,email,password:hashedPassword,role,phone}); // creating a new user object with the provided details
             await user.save();
  
             const token = jwt.sign({id : user._id},process.env.JWT_SECRET,{expiresIn : '7d'}); // creating a JWT token for the user
@@ -46,7 +46,9 @@ export const register = async(req,res) =>{
   user: {
     name: user.name,
     email: user.email,
-    role: user.role, // ✅ important
+    phone: user.phone,
+    role: user.role,
+
   },
 });
 
@@ -86,7 +88,9 @@ export const login = async(req,res) =>{
   user: {
     name: user.name,
     email: user.email,
-    role: user.role, // ✅ include this
+    role: user.role,
+    phone: user.phone,
+
   },
 });
 

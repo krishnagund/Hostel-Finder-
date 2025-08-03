@@ -12,6 +12,8 @@ const ResetPasswordForm = ({ backendurl, onBack }) => {
   const [isEmailSent, setIsEmailSent] = useState(false);
   const [otp, setOtp] = useState("");
   const [isOtpSubmitted, setIsOtpSubmitted] = useState(false);
+  const [phone, setPhone] = useState(""); 
+
 
   const inputRefs = React.useRef([]);
 
@@ -147,6 +149,7 @@ const LoginModal = ({ isOpen, onClose }) => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [role, setRole] = useState("student");
+   const [phone, setPhone] = useState(""); // ← this fixes the error
 
 const onSubmitHandler = async (e) => {
   e.preventDefault();
@@ -160,7 +163,7 @@ const onSubmitHandler = async (e) => {
 
     const payload =
       state === "Sign Up"
-        ? { name, email, password, role }
+        ? { name, email, password, role,phone }
         : { email, password };
 
     const { data } = await axios.post(url, payload);
@@ -235,6 +238,21 @@ const onSubmitHandler = async (e) => {
                   />
                 </div>
               )}
+
+              {state === "Sign Up" && (
+  <div className="mb-3 flex items-center gap-3 w-full px-5 py-2.5 rounded-full bg-[#333A5C]">
+    <img src={assets.mail_icon} alt="" />
+    <input
+      onChange={(e) => setPhone(e.target.value)}
+      value={phone}
+      className="bg-transparent outline-none w-full"
+      type="text"
+      placeholder="Phone Number"
+      required
+    />
+  </div>
+)}
+
 
               <div className="mb-3 flex items-center gap-3 w-full px-5 py-2.5 rounded-full bg-[#333A5C]">
                 <img src={assets.mail_icon} alt="" />

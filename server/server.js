@@ -5,6 +5,7 @@ import cookieParser from 'cookie-parser'; // used for parsing cookies in request
 import connectDB from './config/mongodb.js'; // importing the connectDB function from the mongodb.js file to connect to the MongoDB database
 import authRouter from './routes/authRoutes.js';
 import userRouter from './routes/userRoutes.js';
+import propertyRouter from './routes/propertyRoutes.js';
 import bodyParser from 'body-parser';
 
 
@@ -28,6 +29,7 @@ app.get('/',(req,res) =>
 
 app.use('/api/auth',authRouter) // using the authRouter for handling authentication routes
 app.use('/api/user',userRouter)
+app.use('/api/property', propertyRouter);
 
 
 

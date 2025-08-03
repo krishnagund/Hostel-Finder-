@@ -13,6 +13,7 @@ const userSchema = new mongoose.Schema({ // constructer for creating a schema fo
     enum: ['student', 'owner'],                               // Role can be either student or owner
     default: 'student',                                       // Default role is student
   },
+  phone : {type:String,required:true},
     verifyOtp : {type : String,default : ''}, // verifyOtp field of type String with a default value of an empty string
     verifyOtpExpireAt : {type : Number,default : 0}, // verifyOtpExpireAt field of type Number with a default value of 0
     isAccountVerified : {type : Boolean,default : false}, // isVerified field of type Boolean with a default value of false false because the account is not verified initially

@@ -10,6 +10,7 @@ import { ToastContainer} from "react-toastify";
 import 'react-toastify/dist/ReactToastify.css';
 import StudentProfile from "./pages/StudentProfile"
 import Inbox from "./pages/Inbox"
+import AllProperties from "./pages/AllProperties";
 
 
 
@@ -26,6 +27,7 @@ const App = () => {
         <Route path='/reset-password' element={<ResetPassword/>}/>
          <Route path="/student-profile" element={<StudentProfile />} />
       <Route path="/inbox" element={<Inbox />} />
+      <Route path="/all-properties" element={<AllProperties />} />
 
 
       </Routes>
