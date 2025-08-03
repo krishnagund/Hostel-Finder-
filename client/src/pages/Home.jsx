@@ -44,12 +44,7 @@ const Home = () => {
 
   {/* Right-side buttons: Faves, Searches, Register, Login */}
   <div className="flex items-center gap-3">
-    <button className="text-white bg-[#3A2C99] px-4 py-2 rounded-md hover:bg-white hover:text-black transition cursor-pointer">
-      My Faves
-    </button>
-    <button className="text-white bg-[#3A2C99] px-4 py-2 rounded-md hover:bg-white hover:text-black transition cursor-pointer">
-      Saved Searches
-    </button>
+   
 
     {/* Vertical Divider */}
     <div className="h-7 border-1 border-[#3A2C99] mx-2"></div>
@@ -133,6 +128,8 @@ const Home = () => {
 </section>
 
 
+
+{/*Recently ADDED*/}
 
   <section className="px-6 py-16 bg-white text-center">
   <h2 className="text-3xl font-bold mb-10 text-gray-800">Recently Added</h2>

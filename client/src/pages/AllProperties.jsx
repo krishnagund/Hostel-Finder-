@@ -2,10 +2,15 @@ import { useEffect, useState, useContext } from "react";
 import { AppContext } from "../context/Appcontext";
 import Navbar from "../components/Navbar"; // optional if you move the navbar out
 import { assets } from "../assets/assets";
+import { useNavigate } from "react-router-dom";
 
 const AllProperties = () => {
-  const { backendurl } = useContext(AppContext);
+  const { backendurl,isLoggedin, userData } = useContext(AppContext);
   const [properties, setProperties] = useState([]);
+  const [showLoginModal, setShowLoginModal] = useState(false);
+const [authState, setAuthState] = useState("Login");
+const navigate = useNavigate();
+
 
   const fetchProperties = async () => {
     try {
@@ -35,36 +40,55 @@ const AllProperties = () => {
       </div>
     
       {/* Right-side buttons: Faves, Searches, Register, Login */}
-      <div className="flex items-center gap-3">
-        <button className="text-white bg-[#3A2C99] px-4 py-2 rounded-md hover:bg-white hover:text-black transition cursor-pointer">
-          My Faves
-        </button>
-        <button className="text-white bg-[#3A2C99] px-4 py-2 rounded-md hover:bg-white hover:text-black transition cursor-pointer">
-          Saved Searches
-        </button>
-    
-        {/* Vertical Divider */}
-        <div className="h-7 border-1 border-[#3A2C99] mx-2"></div>
-    
-        <button
-          onClick={() => {
-            setAuthState("Sign Up");
-            setShowLoginModal(true);
-          }}
-          className="text-white bg-[#3A2C99] px-4 py-2 rounded-md hover:bg-white hover:text-black transition cursor-pointer"
-        >
-          Register
-        </button>
-        <button
-          onClick={() => {
-            setAuthState("Login");
-            setShowLoginModal(true);
-          }}
-          className="text-white bg-[#3A2C99] px-4 py-2 rounded-md hover:bg-white hover:text-black transition cursor-pointer"
-        >
-          Log in
-        </button>
-      </div>
+     <div className="flex items-center gap-3">
+  <button className="text-white bg-[#3A2C99] px-4 py-2 rounded-md hover:bg-white hover:text-black transition cursor-pointer">
+    My Faves
+  </button>
+  <button className="text-white bg-[#3A2C99] px-4 py-2 rounded-md hover:bg-white hover:text-black transition cursor-pointer">
+    Saved Searches
+  </button>
+
+  <div className="h-7 border-1 border-[#3A2C99] mx-2" />
+
+  {isLoggedin ? (
+    <>
+      <button
+        onClick={() => navigate("/inbox")}
+        className="text-white bg-[#3A2C99] px-4 py-2 rounded-md hover:bg-white hover:text-black transition cursor-pointer"
+      >
+        Inbox
+      </button>
+      <button
+        onClick={() => navigate("/student-profile")}
+        className="text-white bg-[#3A2C99] px-4 py-2 rounded-md hover:bg-white hover:text-black transition cursor-pointer"
+      >
+        Profile
+      </button>
+    </>
+  ) : (
+    <>
+      <button
+        onClick={() => {
+          setAuthState("Sign Up");
+          setShowLoginModal(true);
+        }}
+        className="text-white bg-[#3A2C99] px-4 py-2 rounded-md hover:bg-white hover:text-black transition cursor-pointer"
+      >
+        Register
+      </button>
+      <button
+        onClick={() => {
+          setAuthState("Login");
+          setShowLoginModal(true);
+        }}
+        className="text-white bg-[#3A2C99] px-4 py-2 rounded-md hover:bg-white hover:text-black transition cursor-pointer"
+      >
+        Log in
+      </button>
+    </>
+  )}
+</div>
+
     </nav>
     <div>
 

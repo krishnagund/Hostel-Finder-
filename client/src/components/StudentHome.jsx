@@ -1,12 +1,30 @@
-import { useContext } from "react";
+import { useContext,useState,useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { assets } from "../assets/assets";
-import { AppContext } from "../context/AppContext";
+import { AppContext } from "../context/Appcontext";
 
 const StudentHome = () => {
   const navigate = useNavigate();
   const { userData } = useContext(AppContext);
+    const [properties, setProperties] = useState([]);
+     const { backendurl } = useContext(AppContext);
 
+
+    const fetchProperties = async () => {
+  try {
+    const response = await fetch(`${backendurl}/api/property/all-properties`, {
+      credentials: 'include', // <== important!
+    });
+    const data = await response.json();
+    setProperties(data.properties);
+  } catch (err) {
+    console.error("Failed to fetch properties", err);
+  }
+};
+
+  useEffect(() => {
+    fetchProperties();
+  }, []);
   return (
     <div className="bg-gray-50 min-h-screen font-sans">
 
@@ -85,24 +103,80 @@ const StudentHome = () => {
         </h1>
       </section>
 
-      {/* ===== How It Works ===== */}
-      <section className="px-6 py-16 bg-white text-center">
-        <h2 className="text-3xl font-bold mb-10 text-gray-800">How It Works</h2>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-10 max-w-6xl mx-auto">
-          {[
-            { title: "Search", desc: "Browse hostels by location and amenities." },
-            { title: "Compare", desc: "Check reviews and compare pricing." },
-            { title: "Connect", desc: "Chat with owners and confirm bookings." },
-            { title: "Move In", desc: "Pack your bags and shift stress-free!" },
-          ].map((step, i) => (
-            <div key={i} className="p-6 border rounded-lg shadow-sm hover:shadow-lg transition">
-              <div className="text-4xl mb-4">✅</div>
-              <h3 className="text-xl font-semibold mb-2">{step.title}</h3>
-              <p className="text-gray-500">{step.desc}</p>
+    {/*Recently ADDED*/}
+
+  <section className="px-6 py-16 bg-white text-center">
+  <h2 className="text-3xl font-bold mb-10 text-gray-800">Recently Added</h2>
+
+  {properties && properties.length > 0 ? (
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 max-w-7xl mx-auto">
+      {properties.slice(0, 3).map((property) => (
+        <div
+          key={property._id}
+          className="bg-white rounded-xl shadow-md overflow-hidden border border-gray-200 hover:shadow-xl transition-transform transform hover:scale-105 relative"
+        >
+          {/* Image */}
+          <img
+            src={
+              property.image ||
+              "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=800&q=80"
+            }
+            alt="Property"
+            className="w-full h-56 object-cover"
+          />
+
+          {/* Posted Date Overlay */}
+          <div className="absolute top-4 right-4 bg-white px-3 py-1 text-xs font-medium text-gray-600 rounded shadow">
+            Posted on {new Date(property.createdAt).toLocaleDateString("en-US", {
+              month: "short",
+              day: "numeric",
+              year: "numeric",
+            })}
+          </div>
+
+          {/* Property Info */}
+          <div className="p-5 text-left">
+            <p className="text-xl font-semibold text-gray-800 mb-1">
+              ₹{property.rent}
+            </p>
+            <p className="text-sm text-gray-500 mb-1">{property.propertyType || "Room"}</p>
+
+            <p className="text-sm text-gray-700 mb-1">
+              2bd • 1ba • {property.area || "800"} ft² • Pets Ok
+            </p>
+
+            <p className="text-sm text-gray-600 mb-1">
+              ID {property._id.slice(-5).toUpperCase()}
+            </p>
+
+            <p className="text-sm text-gray-800">
+              {property.city}, {property.state}
+            </p>
+
+            <div className="mt-4 text-right">
+              <button className="text-white bg-[#3A2C99] px-4 py-2 rounded-md hover:bg-white hover:text-black transition cursor-pointer">
+                Details
+              </button>
             </div>
-          ))}
+          </div>
         </div>
-      </section>
+      ))}
+    </div>
+  ) : (
+    <p className="text-gray-600">No recent listings found.</p>
+  )}
+
+  {/* See All Button */}
+  <div className="mt-12">
+    <a
+      href="/all-properties"
+      className="text-white bg-[#3A2C99] px-4 py-2 rounded-md hover:bg-white hover:text-black transition cursor-pointer"
+    >
+      See All New Rental Properties
+    </a>
+  </div>
+</section>
+
 
       {/* ===== Footer ===== */}
       <footer className="bg-[#3A2C99] text-white py-6 text-center">
