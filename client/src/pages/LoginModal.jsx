@@ -197,7 +197,7 @@ const onSubmitHandler = async (e) => {
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-40 flex items-center justify-center bg-black/80 px-4">
+<div className="fixed inset-0 z-[9999] flex items-center justify-center backdrop-blur-sm bg-black/70">
       <div className="relative bg-slate-900 p-8 rounded-lg shadow-xl w-full max-w-md text-indigo-300">
         <button
           onClick={onClose}

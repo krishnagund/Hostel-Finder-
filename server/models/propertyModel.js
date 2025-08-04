@@ -19,7 +19,9 @@ const propertySchema = new mongoose.Schema({
   availabilityMonth: String,
   availabilityDay: String,
   heading: String,
-  roomImages: [String]
+  roomImages: [String],
+  latitude: Number,
+  longitude: Number,
 }, { timestamps: true });
 
 export default mongoose.model('Property', propertySchema);

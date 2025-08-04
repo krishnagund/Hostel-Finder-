@@ -3,13 +3,55 @@ import { useNavigate } from "react-router-dom";
 import { assets } from "../assets/assets";
 import { AppContext } from "../context/Appcontext";
 
+
 const StudentHome = () => {
   const navigate = useNavigate();
   const { userData } = useContext(AppContext);
     const [properties, setProperties] = useState([]);
-     const { backendurl } = useContext(AppContext);
+     const { backendurl,isLoggedin } = useContext(AppContext);
+      const [favorites, setFavorites] = useState([]);
 
 
+
+     const fetchFavorites = async () => {
+  if (!isLoggedin) return;
+  try {
+    const res = await fetch(`${backendurl}/api/user/favorites`, {
+      credentials: "include",
+    });
+    const data = await res.json();
+    setFavorites(data.favorites.map((fav) => fav._id));
+  } catch (err) {
+    console.error("Error fetching favorites", err);
+  }
+};
+
+useEffect(() => {
+  fetchProperties();
+  fetchFavorites();
+}, [isLoggedin]);
+
+const handleFavoriteToggle = async (propertyId) => {
+  if (!isLoggedin) {
+    setAuthState("Login");
+    setShowLoginModal(true);
+    return;
+  }
+
+  try {
+    const res = await fetch(`${backendurl}/api/user/favorites/${propertyId}`, {
+      method: "POST",
+      credentials: "include",
+    });
+
+    const data = await res.json();
+    if (data.favorites) {
+      setFavorites(data.favorites); // Optional: update UI immediately
+    }
+  } catch (err) {
+    console.error("Error toggling favorite", err);
+  }
+};
     const fetchProperties = async () => {
   try {
     const response = await fetch(`${backendurl}/api/property/all-properties`, {
@@ -39,7 +81,7 @@ const StudentHome = () => {
 
         {/* Navbar Buttons */}
         <div className="flex items-center gap-3">
-          <button className="text-white bg-[#3A2C99] px-4 py-2 rounded-md hover:bg-white hover:text-black transition cursor-pointer">My Faves</button>
+          <button className="text-white bg-[#3A2C99] px-4 py-2 rounded-md hover:bg-white hover:text-black transition cursor-pointer" onClick={() => navigate("/favorites")} >My Faves</button>
           <button className="text-white bg-[#3A2C99] px-4 py-2 rounded-md hover:bg-white hover:text-black transition cursor-pointer">Saved Searches</button>
 
           <div className="h-7 border-1 border-[#3A2C99] mx-2" />
@@ -115,6 +157,20 @@ const StudentHome = () => {
           key={property._id}
           className="bg-white rounded-xl shadow-md overflow-hidden border border-gray-200 hover:shadow-xl transition-transform transform hover:scale-105 relative"
         >
+          <div className="absolute top-4 left-4 z-10">
+  <button
+    onClick={() => handleFavoriteToggle(property._id)}
+    className="focus:outline-none bg-white rounded-md p-2 shadow-md hover:bg-gray-100 transition w-10"
+  >
+    <span
+      className={`text-2xl ${
+        favorites.includes(property._id) ? "text-red-500" : "text-gray-400"
+      }`}
+    >
+      ♥
+    </span>
+  </button>
+</div>
           {/* Image */}
           <img
             src={
@@ -176,12 +232,6 @@ const StudentHome = () => {
     </a>
   </div>
 </section>
-
-
-      {/* ===== Footer ===== */}
-      <footer className="bg-[#3A2C99] text-white py-6 text-center">
-        <p>© 2025 HostelFinder. All rights reserved.</p>
-      </footer>
     </div>
   );
 };

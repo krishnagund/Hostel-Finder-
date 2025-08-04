@@ -1,6 +1,6 @@
 import { useContext } from "react";
 import { assets } from "../assets/assets";
-import { AppContext } from "../context/AppContext";
+import { AppContext } from "../context/Appcontext";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import axios from "axios";
@@ -37,8 +37,7 @@ const OwnerNavbar = ({ setActiveTab, activeTab,setShowListingForm, setSelectedPr
         </div>
 
         <div className="flex items-center gap-4">
-          <button onClick={() => setActiveTab("listings")} className="text-white bg-[#3A2C99] px-4 py-2 rounded-md hover:bg-white hover:text-black transition cursor-pointer">My Faves</button>
-          <button onClick={() => setActiveTab("searches")} className="text-white bg-[#3A2C99] px-4 py-2 rounded-md hover:bg-white hover:text-black transition cursor-pointer">Saved Searches</button>
+         
           <button onClick={() => {
               setShowListingForm(true);
               setSelectedPropertyType(null); // Reset property type

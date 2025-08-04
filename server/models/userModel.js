@@ -19,6 +19,13 @@ const userSchema = new mongoose.Schema({ // constructer for creating a schema fo
     isAccountVerified : {type : Boolean,default : false}, // isVerified field of type Boolean with a default value of false false because the account is not verified initially
     resetOtp :{type : String,default : ''}, // resetOtp field of type String with a default value of an empty string
     resetOtpExpireAt : {type : Number,default : 0}, // resetOtpExpireAt field of type Number with a default value of 0
+
+    favorites: [
+  {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "Property", 
+  }
+],
 })
 
 

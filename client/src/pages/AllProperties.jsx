@@ -1,15 +1,55 @@
 import { useEffect, useState, useContext } from "react";
 import { AppContext } from "../context/Appcontext";
-import Navbar from "../components/Navbar"; // optional if you move the navbar out
 import { assets } from "../assets/assets";
 import { useNavigate } from "react-router-dom";
 
 const AllProperties = () => {
+  const [favorites, setFavorites] = useState([]);
   const { backendurl,isLoggedin, userData } = useContext(AppContext);
   const [properties, setProperties] = useState([]);
   const [showLoginModal, setShowLoginModal] = useState(false);
 const [authState, setAuthState] = useState("Login");
 const navigate = useNavigate();
+
+const fetchFavorites = async () => {
+  if (!isLoggedin) return;
+  try {
+    const res = await fetch(`${backendurl}/api/user/favorites`, {
+      credentials: "include",
+    });
+    const data = await res.json();
+    setFavorites(data.favorites.map((fav) => fav._id));
+  } catch (err) {
+    console.error("Error fetching favorites", err);
+  }
+};
+
+useEffect(() => {
+  fetchProperties();
+  fetchFavorites();
+}, [isLoggedin]);
+
+const handleFavoriteToggle = async (propertyId) => {
+  if (!isLoggedin) {
+    setAuthState("Login");
+    setShowLoginModal(true);
+    return;
+  }
+
+  try {
+    const res = await fetch(`${backendurl}/api/user/favorites/${propertyId}`, {
+      method: "POST",
+      credentials: "include",
+    });
+
+    const data = await res.json();
+    if (data.favorites) {
+      setFavorites(data.favorites); // Optional: update UI immediately
+    }
+  } catch (err) {
+    console.error("Error toggling favorite", err);
+  }
+};
 
 
   const fetchProperties = async () => {
@@ -41,7 +81,7 @@ const navigate = useNavigate();
     
       {/* Right-side buttons: Faves, Searches, Register, Login */}
      <div className="flex items-center gap-3">
-  <button className="text-white bg-[#3A2C99] px-4 py-2 rounded-md hover:bg-white hover:text-black transition cursor-pointer">
+  <button  onClick={() => navigate("/favorites")} className="text-white bg-[#3A2C99] px-4 py-2 rounded-md hover:bg-white hover:text-black transition cursor-pointer">
     My Faves
   </button>
   <button className="text-white bg-[#3A2C99] px-4 py-2 rounded-md hover:bg-white hover:text-black transition cursor-pointer">
@@ -102,6 +142,22 @@ const navigate = useNavigate();
                 key={property._id}
                 className="bg-white rounded-xl shadow-md overflow-hidden border border-gray-200 hover:shadow-xl transition-transform transform hover:scale-105 relative"
               >
+                {/* ❤️ Favorite Button */}
+<div className="absolute top-4 left-4 z-10">
+  <button
+    onClick={() => handleFavoriteToggle(property._id)}
+    className="focus:outline-none bg-white rounded-md p-2 shadow-md hover:bg-gray-100 transition w-10"
+  >
+    <span
+      className={`text-2xl ${
+        favorites.includes(property._id) ? "text-red-500" : "text-gray-400"
+      }`}
+    >
+      ♥
+    </span>
+  </button>
+</div>
+
                 <img
                   src={
                     property.image ||

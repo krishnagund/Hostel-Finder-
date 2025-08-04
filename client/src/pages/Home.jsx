@@ -12,8 +12,50 @@ const Home = () => {
   const { isLoggedin,userData } = useContext(AppContext);
   const [properties, setProperties] = useState([]);
   const { backendurl } = useContext(AppContext);
+  const [searchQuery, setSearchQuery] = useState("");
+   const [favorites, setFavorites] = useState([]);
 
   const navigate = useNavigate();
+
+  const fetchFavorites = async () => {
+  if (!isLoggedin) return;
+  try {
+    const res = await fetch(`${backendurl}/api/user/favorites`, {
+      credentials: "include",
+    });
+    const data = await res.json();
+    setFavorites(data.favorites.map((fav) => fav._id));
+  } catch (err) {
+    console.error("Error fetching favorites", err);
+  }
+};
+
+useEffect(() => {
+  fetchProperties();
+  fetchFavorites();
+}, [isLoggedin]);
+
+const handleFavoriteToggle = async (propertyId) => {
+  if (!isLoggedin) {
+    setAuthState("Login");
+    setShowLoginModal(true);
+    return;
+  }
+
+  try {
+    const res = await fetch(`${backendurl}/api/user/favorites/${propertyId}`, {
+      method: "POST",
+      credentials: "include",
+    });
+
+    const data = await res.json();
+    if (data.favorites) {
+      setFavorites(data.favorites); // Optional: update UI immediately
+    }
+  } catch (err) {
+    console.error("Error toggling favorite", err);
+  }
+};
 
     const fetchProperties = async () => {
   try {
@@ -88,11 +130,13 @@ const Home = () => {
           <div className="flex justify-center items-center gap-2 max-w-md mx-auto">
             <input
               type="text"
-              placeholder="Search city or college..."
+              value={searchQuery}
+               onChange={(e) => setSearchQuery(e.target.value)}
+               placeholder="Search city or college..."
               className="w-full max-w-3xl px-6 py-3 bg-white text-black rounded-md border border-gray-300 shadow-md focus:outline-none focus:ring-1 focus:ring-blue-500"
             />
             <button
-              onClick={() => navigate("/hostels")}
+               onClick={() => navigate(`/hostels?city=${encodeURIComponent(searchQuery)}`)}
               className="bg-[#3A2C99] text-white px-5 py-3 rounded-md hover:bg-white hover:text-black transition"
             >
               🔍
@@ -141,6 +185,22 @@ const Home = () => {
           key={property._id}
           className="bg-white rounded-xl shadow-md overflow-hidden border border-gray-200 hover:shadow-xl transition-transform transform hover:scale-105 relative"
         >
+
+                         {/* ❤️ Favorite Button */}
+<div className="absolute top-4 left-4 z-10">
+  <button
+    onClick={() => handleFavoriteToggle(property._id)}
+    className="focus:outline-none bg-white rounded-md p-2 shadow-md hover:bg-gray-100 transition w-10"
+  >
+    <span
+      className={`text-2xl ${
+        favorites.includes(property._id) ? "text-red-500" : "text-gray-400"
+      }`}
+    >
+      ♥
+    </span>
+  </button>
+</div>
           {/* Image */}
           <img
             src={
@@ -202,12 +262,6 @@ const Home = () => {
     </a>
   </div>
 </section>
-
-
-      {/* Footer */}
-      <footer className="bg-[#3A2C99] text-white py-6 text-center">
-        <p>© 2025 HostelFinder. All rights reserved.</p>
-      </footer>
 
       {/* Login Modal */}
       <LoginModal

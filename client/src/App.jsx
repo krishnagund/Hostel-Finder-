@@ -11,7 +11,9 @@ import 'react-toastify/dist/ReactToastify.css';
 import StudentProfile from "./pages/StudentProfile"
 import Inbox from "./pages/Inbox"
 import AllProperties from "./pages/AllProperties";
-
+import HostelSearchPage from "./pages/HostelSearchPage";
+import Footer from "./components/footer";
+import FavoriteProperties from "./pages/FavoriteProperties";
 
 
 const App = () => {
@@ -28,9 +30,12 @@ const App = () => {
          <Route path="/student-profile" element={<StudentProfile />} />
       <Route path="/inbox" element={<Inbox />} />
       <Route path="/all-properties" element={<AllProperties />} />
+       <Route path="/hostels" element={<HostelSearchPage />} /> 
+       <Route path="/favorites" element={<FavoriteProperties />} />
 
 
       </Routes>
+      <Footer />
     </div>
   );
 }
