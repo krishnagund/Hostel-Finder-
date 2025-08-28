@@ -10,39 +10,67 @@ const AppContextProvider = ({ children }) => {
 
   const [isLoggedin, setIsLoggedin] = useState(false);
   const [userData, setUserData] = useState(null); 
+  const [userRole, setUserRole] = useState(null); 
+  const [loading, setLoading] = useState(true);  // NEW
+
 
   const checkAuth = async () => {
-    try {
-      const response = await axios.get(backendurl + "/api/auth/is-auth", {
-        withCredentials: true
-      });
-      const data = response.data;
+  try {
+    const response = await axios.get(backendurl + "/api/auth/is-auth", {
+      withCredentials: true
+    });
+    const data = response.data;
 
-      if (data.success) {
-        setIsLoggedin(true);
-        await getUserData();
-      }
-    } catch (error) {
-      toast.error("Authentication check failed");
+    if (data.success) {
+      setIsLoggedin(true);
+      await getUserData();
+    } else {
+      setIsLoggedin(false);  
+      setUserData(null);
+      setUserRole(null);
     }
-  };
+  } catch (error) {
+    setIsLoggedin(false);     
+    setUserData(null);
+    setUserRole(null);
+    console.error("Authentication check failed:", error.message);
+  } finally {
+    setLoading(false);   
+  }
+};
+
+
 
   const getUserData = async () => {
-    try {
-      const response = await axios.get(backendurl + "/api/user/data", {
-        withCredentials: true
-      });
-      const data = response.data;
+  try {
+    const response = await axios.get(backendurl + "/api/user/data", {
+      withCredentials: true
+    });
+    const data = response.data;
 
-      if (data.success) {
-        setUserData(data.userData);
-      } else {
-        toast.error(data.message);
-      }
-    } catch (error) {
-      toast.error("Failed to fetch user data");
+    if (data.success) {
+      setUserData(data.userData);
+      setUserRole(data.userData.role);  
+    } else {
+      toast.error(data.message);
     }
-  };
+  } catch (error) {
+    toast.error("Failed to fetch user data");
+  }
+};
+
+const logout = async () => {
+  try {
+    await axios.post(backendurl + "/api/auth/logout", {}, { withCredentials: true });
+  } catch (err) {
+    console.error("Logout failed:", err.message);
+  }
+  setIsLoggedin(false);
+  setUserData(null);
+  setUserRole(null);
+};
+
+
 
   useEffect(() => {
     checkAuth();
@@ -54,7 +82,12 @@ const AppContextProvider = ({ children }) => {
     setIsLoggedin,
     userData,
     setUserData,
-    getUserData
+    userRole,          
+    setUserRole, 
+    getUserData,
+    logout,
+    loading
+
   };
 
   return (

@@ -1,76 +1,138 @@
-import { useContext } from "react";
+import { useContext, useState } from "react";
 import { assets } from "../assets/assets";
-import { AppContext } from "../context/Appcontext";
+import { AppContext } from "../context/AppContext";
 import { useNavigate } from "react-router-dom";
-import { toast } from "react-toastify";
-import axios from "axios";
+import RenterInfo from "./RenterInfo";
+import { useLanguage } from "../context/LanguageContext";
+import TranslatedText from "./TranslatedText";
+import LanguageToggle from "./LanguageToggle";
+import { Menu, X } from "lucide-react";
 
+const OwnerNavbar = ({ setActiveTab, activeTab, setShowListingForm, setSelectedPropertyType }) => {
+  const { userData, logout } = useContext(AppContext);
+  const { language, setLanguage } = useLanguage();
+  const navigate = useNavigate();
 
-const OwnerNavbar = ({ setActiveTab, activeTab,setShowListingForm, setSelectedPropertyType }) => {
-    const { userData, setIsLoggedin, setUserData,backendurl } = useContext(AppContext);
-     const navigate = useNavigate();
-     if (!userData) {
-    return <div className="p-6 text-center text-red-600">Please login to view profile.</div>;
+  const [menuOpen, setMenuOpen] = useState(false);
+
+  if (!userData) {
+    return (
+      <div className="p-6 text-center text-red-600">
+        <RenterInfo text="Please login to view profile." />
+      </div>
+    );
   }
-  const logout = async() =>{
-        try{
-            axios.defaults.withCredentials = true;
-            const {data} = await axios.post(backendurl + '/api/auth/logout')
-            data.success && setIsLoggedin(false)
-            data.success && setUserData(false)
-            navigate('/')
-        
-        }
-        catch(error){
-               toast.error(error.message)
-        }
-    }
 
   return (
     <>
-      {/* Top Navigation */}
-      <nav className="bg-white shadow px-6 py-4 flex justify-between items-center">
-        <div className="flex items-center space-x-2 text-3xl font-bold">
-          <img src={assets.logo1} alt="Hostel Finder Logo" className="h-18 w-18 object-contain" />
+      {/* ✅ Top Navigation */}
+      <nav className="bg-white shadow px-4 sm:px-6 py-4 flex justify-between items-center">
+        {/* Logo */}
+        <div className="flex items-center space-x-2 text-2xl sm:text-3xl font-bold">
+          <img
+            src={assets.logo1}
+            alt="Hostel Finder Logo"
+            className="h-12 w-12 sm:h-16 sm:w-16 object-contain"
+          />
           <span className="text-gray-800">Hostel</span>
           <span className="text-[#3A2C99] italic">Finder</span>
         </div>
 
-        <div className="flex items-center gap-4">
-         
-          <button onClick={() => {
+        {/* Desktop Actions */}
+        <div className="hidden md:flex items-center gap-4">
+          <LanguageToggle />
+          <button
+            onClick={() => {
               setShowListingForm(true);
-              setSelectedPropertyType(null); // Reset property type
-            }} className="text-white bg-[#3A2C99] px-4 py-2 rounded-md hover:bg-white hover:text-black transition cursor-pointer">List a Property</button>
+              setSelectedPropertyType(null);
+            }}
+            className="text-white bg-[#3A2C99] px-4 py-2 rounded-md hover:bg-white hover:text-black transition cursor-pointer"
+          >
+            <RenterInfo text="List a Property" />
+          </button>
 
           <div className="ml-4 flex items-center gap-2">
-            <span className="text-1xl font-medium">{userData.name}</span>
-            <button className="text-red-500 text-sm" onClick={logout}>
-              (Sign Out)
+            <span className="text-base font-medium">
+              <TranslatedText text={userData.name} />
+            </span>
+            <button
+              className="text-red-500 text-sm cursor-pointer"
+              onClick={logout}
+            >
+              (<RenterInfo text="Sign Out" />)
             </button>
           </div>
         </div>
+
+        {/* Mobile Hamburger */}
+        <button
+          className="md:hidden text-gray-700"
+          onClick={() => setMenuOpen(!menuOpen)}
+        >
+          {menuOpen ? <X size={26} /> : <Menu size={26} />}
+        </button>
       </nav>
 
-      {/* Tab Buttons Row */}
-      <div className="bg-gray-100 px-6 py-2 flex gap-6 border-b">
+      {/* ✅ Mobile Dropdown Menu */}
+      {menuOpen && (
+        <div className="md:hidden bg-white border-t shadow px-4 py-3 space-y-4">
+          <LanguageToggle />
+          <button
+            onClick={() => {
+              setShowListingForm(true);
+              setSelectedPropertyType(null);
+              setMenuOpen(false);
+            }}
+            className="block w-full text-white bg-[#3A2C99] px-4 py-2 rounded-md hover:bg-white hover:text-black transition"
+          >
+            <RenterInfo text="List a Property" />
+          </button>
+
+          <div className="flex flex-col items-start gap-2">
+            <span className="text-base font-medium">
+              <TranslatedText text={userData.name} />
+            </span>
+            <button
+              className="text-red-500 text-sm cursor-pointer"
+              onClick={logout}
+            >
+              (<RenterInfo text="Sign Out" />)
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* ✅ Tab Buttons Row */}
+      <div className="bg-gray-100 px-4 sm:px-6 py-2 flex gap-6 border-b overflow-x-auto scrollbar-hide">
         <button
           onClick={() => setActiveTab("listings")}
-          className={`text-sm font-medium ${activeTab === "listings" ? "text-green-700 border-b-2 border-green-700 pb-1" : "text-gray-600"}`}
+          className={`whitespace-nowrap text-sm font-medium ${
+            activeTab === "listings"
+              ? "text-green-700 border-b-2 border-green-700 pb-1"
+              : "text-gray-600"
+          }`}
         >
-          Listings
+          <RenterInfo text="Listings" />
         </button>
         <button
           onClick={() => setActiveTab("inbox")}
-          className={`text-sm font-medium ${activeTab === "inbox" ? "text-green-700 border-b-2 border-green-700 pb-1" : "text-gray-600"}`}
+          className={`whitespace-nowrap text-sm font-medium ${
+            activeTab === "inbox"
+              ? "text-green-700 border-b-2 border-green-700 pb-1"
+              : "text-gray-600"
+          }`}
         >
-          Inbox
+          <RenterInfo text="Inbox" />
         </button>
         <button
           onClick={() => setActiveTab("forms")}
-          className={`text-sm font-medium ${activeTab === "forms" ? "text-green-700 border-b-2 border-green-700 pb-1" : "text-gray-600"}`}
+          className={`whitespace-nowrap text-sm font-medium ${
+            activeTab === "forms"
+              ? "text-green-700 border-b-2 border-green-700 pb-1"
+              : "text-gray-600"
+          }`}
         >
-          Forms
+          <RenterInfo text="Forms" />
         </button>
       </div>
     </>

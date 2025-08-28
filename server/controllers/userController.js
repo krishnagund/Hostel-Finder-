@@ -1,10 +1,8 @@
 import userModel from "../models/userModel.js";
 
-// 🧠 Get current user data
 export const getUserData = async (req, res) => {
   try {
     const userId = req.userId;
-
     const user = await userModel.findById(userId);
 
     if (!user) {
@@ -15,6 +13,9 @@ export const getUserData = async (req, res) => {
       success: true,
       userData: {
         name: user.name,
+        email: user.email,
+        phone: user.phone,
+        role: user.role,
         isAccountVerified: user.isAccountVerified,
       },
     });
@@ -23,7 +24,7 @@ export const getUserData = async (req, res) => {
   }
 };
 
-// ❤️ Toggle favorite property
+
 export const toggleFavorite = async (req, res) => {
   const userId = req.userId;
   const propertyId = req.params.propertyId;
@@ -49,7 +50,6 @@ export const toggleFavorite = async (req, res) => {
   }
 };
 
-// 🧾 Get all favorited properties
 export const getFavorites = async (req, res) => {
   const userId = req.userId;
 

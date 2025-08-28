@@ -31,14 +31,24 @@ export const register = async(req,res) =>{
 
             res.cookie('token',token,{httpOnly : true,secure : process.env.NODE_ENV === 'production',sameSite:process.env.NODE_ENV === 'production' ? 'none' : 'strict',maxAge : 7*24*60*60*1000}); // setting the token as a cookie in the response
              
-            //sending a confirmation email to the user
-            const mailOPtions ={
-                from : process.env.SENDER_EMAIL, // sender's email address from environment variables
-                to : email, // recipient's email address
-                subject : 'Welcome to Our Service', // subject of the email
-                text: `Welcome to our service, we are glad to have you onboard! and you have succesfully crated email with this email id : ${email}`, // plain text body of the email
-            }
-            await transporter.sendMail(mailOPtions); // sending the email using the transporter object
+            // Generate OTP
+const otp = String(Math.floor(100000 + Math.random() * 900000));
+
+user.verifyOtp = otp;
+user.verifyOtpExpireAt = Date.now() + 24*60*60*1000; // 24 hours validity
+await user.save();
+
+const mailOptions = {
+  from: process.env.SENDER_EMAIL,
+  to: user.email,
+  subject: 'Verify Your Account',
+  html: EMAIL_VERIFY_TEMPLATE
+    .replace("{{otp}}", otp)
+    .replace("{{email}}", user.email),
+};
+
+await transporter.sendMail(mailOptions);
+
 
             return res.json({
   success: true,
@@ -59,56 +69,84 @@ export const register = async(req,res) =>{
          }
 }
 
-export const login = async(req,res) =>{
-    const {email,password} = req.body;
+export const login = async (req, res) => {
+  const { email, password } = req.body;
 
-    if(!email || !password){
-        return res.json({success : false , message : "email and password are required"})
+  if (!email || !password) {
+    return res.json({ success: false, message: "email and password are required" });
+  }
+
+  try {
+    const user = await userModel.findOne({ email }); // finding the user by email
+
+    if (!user) {
+      return res.json({ success: false, message: "user not found" });
     }
 
-    try{
-        const user = await userModel.findOne({email}); // finding the user by email
-
-        if(!user){
-            return res.json({success : false , message : "user not found"})
-        }
-
-        const isMatch = await bcrypt.compare(password,user.password); // comparing the provided password with the hashed password in the database
-
-        if(!isMatch){
-            return res.json({success : false , message : "invalid password"})
-        }
-
-        const token = jwt.sign({id : user._id},process.env.JWT_SECRET,{expiresIn : '7d'}); // creating a JWT token for the user
-        res.cookie('token',token,{httpOnly : true,secure : process.env.NODE_ENV === 'production',sameSite:process.env.NODE_ENV === 'production' ? 'none' : 'strict',maxAge : 7*24*60*60*1000}); // setting the token as a cookie in the response
-    
-        return res.json({
-  success: true,
-  message: "User logged in successfully",
-  user: {
-    name: user.name,
-    email: user.email,
-    role: user.role,
-    phone: user.phone,
-
-  },
-});
-
+    if (!user.isAccountVerified) {
+      return res.json({
+        success: false,
+        message: "Please verify your email before logging in",
+      });
     }
-    catch(error){
-        res.json({success : false , message : error.message})
-    }
-}
 
-export const logout = async(req,res) => {
-    try {
-        res.clearCookie('token',{httpOnly : true,secure : process.env.NODE_ENV === 'production',sameSite:process.env.NODE_ENV === 'production' ? 'none' : 'strict'}); // clearing the token cookie to log out the user
-        return res.json({success : true , message : "logged out successfully"})
+    const isMatch = await bcrypt.compare(password, user.password); // compare provided password
+    if (!isMatch) {
+      return res.json({ success: false, message: "invalid password" });
     }
-    catch (error) {
-        res.json({success : false , message : error.message})
-    }
-}
+
+    // Create JWT
+    const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, {
+      expiresIn: "7d", // JWT validity (server side)
+    });
+
+    const isProd = process.env.NODE_ENV === "production";
+    const SEVEN_DAYS_MS = 7 * 24 * 60 * 60 * 1000;
+
+    // ✅ Set cookie
+    res.cookie("token", token, {
+      httpOnly: true,
+      secure: isProd,
+      sameSite: isProd ? "none" : "strict",
+      path: "/",             // important: so clearCookie also works globally
+      maxAge: SEVEN_DAYS_MS, // expires in 7 days
+    });
+
+    return res.json({
+      success: true,
+      message: "User logged in successfully",
+      user: {
+        name: user.name,
+        email: user.email,
+        role: user.role,
+        phone: user.phone,
+        isAccountVerified: user.isAccountVerified,
+      },
+    });
+  } catch (error) {
+    res.json({ success: false, message: error.message });
+  }
+};
+
+// ---------------- LOGOUT ----------------
+export const logout = async (req, res) => {
+  try {
+    const isProd = process.env.NODE_ENV === "production";
+
+    // ✅ Clear cookie
+    res.clearCookie("token", {
+      httpOnly: true,
+      secure: isProd,
+      sameSite: isProd ? "none" : "strict",
+      path: "/", // must match the path used in res.cookie()
+    });
+
+    return res.status(200).json({ success: true, message: "Logged out successfully" });
+  } catch (error) {
+    return res.status(500).json({ success: false, message: error.message });
+  }
+};
+
 // Function to send verification OTP to the user
 export const sendVerifyOtp = async(req,res) => {
     try{
@@ -144,51 +182,54 @@ export const sendVerifyOtp = async(req,res) => {
 }
 
 
-export const verifyEmail = async(req,res) => {
-    const userId = req.userId; // extracting userId from the request body
-    const {otp} = req.body; // extracting userId and otp from the request body
+export const verifyEmail = async (req, res) => {
+  const userId = req.userId;
+  const { otp } = req.body;
 
-    if(!userId || !otp){
-        return res.json({success : false , message : "userId and otp are required"})
+  if (!userId || !otp) {
+    return res.json({ success: false, message: "userId and otp are required" });
+  }
+
+  try {
+    const user = await userModel.findById(userId);
+
+    if (!user) {
+      return res.json({ success: false, message: "user not found" });
     }
 
-    try{
-            const user = await userModel.findById(userId); // finding the user by userId
-
-            if(!user){
-                return res.json({success: false , message : "user not found"})
-            }
-
-            if(user.verifyOtp === '' || user.verifyOtp !== otp){
-                return res.json({success : false , message : "invalid OTP"})
-            }
-
-            if(user.verifyOtpExpireAt < Date.now()){
-                return res.json({success : false , message : "OTP has expired"})
-            }
-
-            user.isAccountVerified = true; // setting the isAccountVerified field to true
-            user.verifyOtp = ''; // clearing the verifyOtp field
-            user.verifyOtpExpireAt = 0; // clearing the verifyOtpExpireAt field
-
-            await user.save(); // saving the updated user document to the database
-
-            return res.json({success:true,message:"Email verified"})
+    if (user.verifyOtp === "" || user.verifyOtp !== otp) {
+      return res.json({ success: false, message: "invalid OTP" });
     }
-    catch (error) {
-        res.json({success : false , message : error.message}) // sending an error response if any exception occurs
 
+    if (user.verifyOtpExpireAt < Date.now()) {
+      return res.json({ success: false, message: "OTP has expired" });
     }
-}
+
+    user.isAccountVerified = true;
+    user.verifyOtp = "";
+    user.verifyOtpExpireAt = 0;
+    await user.save();
+
+    return res.json({ success: true, message: "Email verified" });
+  } catch (error) {
+    return res.json({ success: false, message: error.message });
+  }
+};
+
+
 
 //check user is authenticated or not
 export const isAuthenticated = (req, res) => {
-    try{
-return res.json({success : true }) // returning the authenticated user details
-    }catch(error){
-        res.json({success : false , message : error.message})
-    }   
-}
+  try {
+    if (req.userId) {
+      return res.json({ success: true, userId: req.userId });
+    } else {
+      return res.status(401).json({ success: false, message: "Not authenticated" });
+    }
+  } catch (error) {
+    return res.status(500).json({ success: false, message: error.message });
+  }
+};
 
 // send password reset OTP
 
@@ -265,3 +306,10 @@ export const resetPassword = async(req,res) => {
 
     }
 }
+
+
+export const profile = (req, res) => {
+  // userAuth already sets req.user and req.userId
+  if (!req.user) return res.status(401).json({ success: false, message: "Not authenticated" });
+  return res.json({ success: true, user: req.user });
+};

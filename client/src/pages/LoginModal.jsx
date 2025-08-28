@@ -93,7 +93,7 @@ const ResetPasswordForm = ({ backendurl, onBack }) => {
             onChange={(e) => setEmail(e.target.value)}
             required
           />
-          <button type="submit" className="w-full bg-indigo-600 text-white py-2 rounded">Send OTP</button>
+          <button type="submit" className="w-full bg-indigo-600 text-white py-2 rounded cursor-pointer">Send OTP</button>
         </form>
       )}
 
@@ -112,7 +112,7 @@ const ResetPasswordForm = ({ backendurl, onBack }) => {
               />
             ))}
           </div>
-          <button type="submit" className="w-full bg-indigo-600 text-white py-2 rounded">Submit OTP</button>
+          <button type="submit" className="w-full bg-indigo-600 text-white py-2 rounded cursor-pointer">Submit OTP</button>
         </form>
       )}
 
@@ -126,7 +126,7 @@ const ResetPasswordForm = ({ backendurl, onBack }) => {
             onChange={(e) => setNewPassword(e.target.value)}
             required
           />
-          <button type="submit" className="w-full bg-indigo-600 text-white py-2 rounded">Reset Password</button>
+          <button type="submit" className="w-full bg-indigo-600 text-white py-2 rounded cursor-pointer">Reset Password</button>
         </form>
       )}
 
@@ -142,7 +142,7 @@ const ResetPasswordForm = ({ backendurl, onBack }) => {
 
 const LoginModal = ({ isOpen, onClose }) => {
   const navigate = useNavigate();
-  const { backendurl, setIsLoggedin, getUserData } = useContext(AppContext);
+  const { backendurl, setIsLoggedin, getUserData,setUserData, setUserRole  } = useContext(AppContext);
   const [state, setState] = useState("Login"); // 'Login' or 'Sign Up'
   const [showResetPassword, setShowResetPassword] = useState(false);
   const [name, setName] = useState("");
@@ -170,23 +170,38 @@ const onSubmitHandler = async (e) => {
 
     console.log("Login/Register Response:", data); // debug here
 
-    if (data.success) {
-      setIsLoggedin(true);
-      getUserData(); 
-      onClose();
-
-      const role = data.user?.role;
-
-      if (role === "student") {
-    navigate("/student");
-  } else if (role === "owner") {
-    navigate("/owner");
+   if (data.success) {
+  if (state === "Sign Up") {
+    // 🔹 Registration case
+    toast.success("Registered successfully! Please verify your email.");
+    onClose();
+    navigate("/email-verify"); // redirect to verify page
   } else {
-    navigate("/");
-  }
-    } else {
-      toast.error(data.message || "Failed");
+    // 🔹 Login case
+    if (!data.user.isAccountVerified) {
+      toast.error("Please verify your email before logging in.");
+      return;
     }
+    setIsLoggedin(true);
+    setUserData(data.user);
+    setUserRole(data.user.role);
+    onClose();
+
+    if (data.user.role === "student") {
+  navigate("/student");
+} else if (data.user.role === "owner") {
+  navigate("/owner");
+} else if (data.user.role === "admin") {
+  navigate("/admin");
+} else {
+  navigate("/");
+}
+
+  }
+} else {
+  toast.error(data.message || "Failed");
+}
+
   } catch (error) {
     toast.error(error.message || "Something went wrong");
   }
@@ -201,7 +216,7 @@ const onSubmitHandler = async (e) => {
       <div className="relative bg-slate-900 p-8 rounded-lg shadow-xl w-full max-w-md text-indigo-300">
         <button
           onClick={onClose}
-          className="absolute top-2 right-3 text-white text-xl hover:text-indigo-300"
+          className="absolute top-2 right-3 text-white text-xl hover:text-indigo-300 cursor-pointer"
         >
           &times;
         </button>
@@ -315,7 +330,7 @@ const onSubmitHandler = async (e) => {
 
               <button
                 type="submit"
-                className="w-full py-2.5 rounded-full bg-gradient-to-r from-indigo-500 to-indigo-900 text-white font-medium"
+                className="w-full py-2.5 rounded-full bg-gradient-to-r from-indigo-500 to-indigo-900 text-white font-medium cursor-pointer"
               >
                 {state}
               </button>

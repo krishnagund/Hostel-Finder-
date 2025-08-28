@@ -3,53 +3,60 @@ import OwnerNavbar from "./OwnerNavbar";
 import ListingsTab from "../pages/ListingsTab";
 import InboxTab from "../pages/InboxTab";
 import FormsTab from "../pages/FormsTab";
-import PropertyForm from "../components/PropertyForm"; // You'll create this
-import PropertyTypeSelection from "../components/PropertyTypeSelection"; // You'll create this
+import PropertyForm from "./PropertyForm"; 
+import PropertyTypeSelection from "./PropertyTypeSelection"; 
 import { AppContext } from "../context/Appcontext";
+import RenterInfo from "./RenterInfo";
 
 const HostelOwnerHome = () => {
   const [activeTab, setActiveTab] = useState("listings");
-  const [lastTabBeforeListing, setLastTabBeforeListing] = useState("listings"); // NEW
+  const [lastTabBeforeListing, setLastTabBeforeListing] = useState("listings"); 
   const [showListingForm, setShowListingForm] = useState(false);
-  const [selectedPropertyType, setSelectedPropertyType] = useState(null); // "single" or "apartment"
+  const [selectedPropertyType, setSelectedPropertyType] = useState(null); 
   const [properties, setProperties] = useState([]);
-  const { backendurl, userData } = useContext(AppContext);
+  const { backendurl } = useContext(AppContext);
 
- const fetchProperties = async () => {
-  try {
-    const response = await fetch(`${backendurl}/api/property/my-properties`, {
-      credentials: 'include', // <== important!
-    });
-    const data = await response.json();
-    setProperties(data.properties);
-  } catch (err) {
-    console.error("Failed to fetch properties", err);
-  }
-};
+  const fetchProperties = async () => {
+    try {
+      const response = await fetch(`${backendurl}/api/property/my-properties`, {
+        credentials: "include",
+      });
+      const data = await response.json();
+      setProperties(data.properties);
+    } catch (err) {
+      console.error(
+        <RenterInfo text="Failed to fetch properties" />,
+        err
+      );
+    }
+  };
 
-  // ✅ 2. Call it on initial render
   useEffect(() => {
     fetchProperties();
   }, []);
 
-  // ✅ 3. Refresh listings after submitting a property
   const handleBackFromListing = () => {
     setShowListingForm(false);
     setSelectedPropertyType(null);
     setActiveTab(lastTabBeforeListing);
-    fetchProperties(); 
+    fetchProperties();
   };
-
 
   const renderTabContent = () => {
     if (showListingForm) {
       if (!selectedPropertyType) {
         return (
-          <PropertyTypeSelection setSelectedPropertyType={setSelectedPropertyType} onBack={handleBackFromListing} />
+          <PropertyTypeSelection
+            setSelectedPropertyType={setSelectedPropertyType}
+            onBack={handleBackFromListing}
+          />
         );
       } else {
         return (
-          <PropertyForm propertyType={selectedPropertyType}  onBack={handleBackFromListing} />
+          <PropertyForm
+            propertyType={selectedPropertyType}
+            onBack={handleBackFromListing}
+          />
         );
       }
     }
@@ -61,7 +68,6 @@ const HostelOwnerHome = () => {
         return <FormsTab />;
       default:
         return <ListingsTab properties={properties} />;
-
     }
   };
 

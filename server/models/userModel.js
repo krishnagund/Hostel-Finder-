@@ -10,7 +10,7 @@ const userSchema = new mongoose.Schema({ // constructer for creating a schema fo
     // Role-based access
   role: {
     type: String,
-    enum: ['student', 'owner'],                               // Role can be either student or owner
+    enum: ['student', 'owner','admin'],                               // Role can be either student or owner
     default: 'student',                                       // Default role is student
   },
   phone : {type:String,required:true},

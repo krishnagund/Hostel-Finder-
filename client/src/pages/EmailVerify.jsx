@@ -36,27 +36,30 @@ const EmailVerify = () => {
 
     }
 
-    const onSubmitHandler = async (e) => {
-  try {
-    e.preventDefault();
+const onSubmitHandler = async (e) => {
+  e.preventDefault();
 
-    const otpArray = inputRefs.current.map(input => input.value);
-    const otp = otpArray.join('');
+  const otpArray = inputRefs.current.map(input => input.value);
+  const otp = otpArray.join('');
 
-    const response = await axios.post(backendurl + '/api/auth/verify-account', { otp });
-    const data = response.data;
+  const response = await axios.post(
+    backendurl + "/api/auth/verify-account",
+    { otp }, // ✅ only OTP
+    { withCredentials: true } // ✅ send JWT cookie
+  );
 
-    if (data.success) {
-      toast.success(data.message);
-      getUserData();
-      navigate('/');
-    } else {
-      toast.error(data.message);
-    }
-  } catch (error) {
-    toast.error(error.response?.data?.message || error.message);
+  const data = response.data;
+
+  if (data.success) {
+    toast.success(data.message);
+    getUserData(); // refresh user info
+    navigate("/");
+  } else {
+    toast.error(data.message);
   }
 };
+
+
 
 useEffect(()=>{
  isLoggedin && userData && userData.isAccountVerified && navigate('/')

@@ -7,6 +7,18 @@ import hand_wave from './hand_wave.png'
 import header_img from './header_img.png'
 import hostel from './hostel.jpg';
 import logo1 from './logo1.png'
+import city1 from "./city1.jpg";
+import city2 from "./city2.jpg";
+import city3 from "./city3.jpg";
+import city4 from "./city4.jpg";
+import city5 from "./city5.jpg";
+import city6 from "./city6.jpg";
+import city7 from "./city7.jpg";
+import city8 from "./city8.jpg";
+import city9 from "./city9.jpg";
+import city10 from "./city10.jpg";
+import admin from "./admin.png"
+
 
 export const assets = {
     arrow_icon,
@@ -18,4 +30,15 @@ export const assets = {
     header_img,
     hostel,
     logo1,
+    city1,
+    city2,
+    city3,
+    city4,
+    city5,
+    city6,
+    city7,
+    city8,
+    city9,
+    city10,
+    admin
 }

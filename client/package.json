@@ -4,7 +4,7 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "vite",
+    "dev": "vite --host",
     "build": "vite build",
     "lint": "eslint .",
     "preview": "vite preview",
@@ -14,13 +14,19 @@
   "dependencies": {
     "axios": "^1.10.0",
     "country-state-city": "^3.2.1",
+    "crypto-js": "^4.2.0",
+    "i18next": "^25.4.1",
     "leaflet": "^1.9.4",
+    "lucide-react": "^0.541.0",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
+    "react-i18next": "^15.7.2",
     "react-icons": "^5.5.0",
     "react-leaflet": "^5.0.0",
     "react-router-dom": "^7.7.0",
-    "react-toastify": "^11.0.5"
+    "react-toastify": "^11.0.5",
+    "stream-chat": "^9.16.0",
+    "stream-chat-react": "^13.3.0"
   },
   "devDependencies": {
     "@eslint/js": "^9.30.1",

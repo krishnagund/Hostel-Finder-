@@ -1,6 +1,6 @@
 import express from 'express';
 const authRouter = express.Router(); // creating a new router instance for authentication routes
-import { register, login, logout, sendVerifyOtp, verifyEmail,isAuthenticated, sendResetOtp, resetPassword } from '../controllers/authController.js'; // importing the register and login controller functions
+import { register, login, logout, sendVerifyOtp, verifyEmail,isAuthenticated, sendResetOtp, resetPassword ,profile} from '../controllers/authController.js'; // importing the register and login controller functions
 import userAuth from '../middleware/userAuth.js'; // importing the userAuth middleware for authentication checks
 
 authRouter.post('/register', register); // defining a POST route for user registration
@@ -11,7 +11,13 @@ authRouter.post('/verify-account',userAuth,verifyEmail); // defining a POST rout
 authRouter.get('/is-auth',userAuth,isAuthenticated); // defining a POST route to check if the user is authenticated, protected by userAuth middleware
 authRouter.post('/send-reset-otp',sendResetOtp); // defining a POST route for sending reset OTP, protected by userAuth middleware
 authRouter.post('/reset-password',resetPassword);
+authRouter.get('/profile', userAuth, profile);
 export default authRouter; 
+
+
+
+
+
 
 
 

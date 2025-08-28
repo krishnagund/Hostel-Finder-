@@ -4,11 +4,14 @@ import { getCoordinatesFromAddress } from '../utils/geocode.js';
 export const createProperty = async (req, res) => {
   try {
     const userId = req.userId;
+
     const {
       properttyType, address, state, city, postalCode, phone, email,
       rent, deposit, leaseTerm, availabilityMonth, availabilityDay,
-      heading, roomImages, description, community
+      heading, description, community
     } = req.body;
+
+    const roomImages = (req.files || []).map(file => file.path);
 
     const fullAddress = `${city},${postalCode}, India`;
     const { latitude, longitude } = await getCoordinatesFromAddress(fullAddress);
@@ -24,11 +27,11 @@ export const createProperty = async (req, res) => {
       email,
       rent,
       deposit,
-      leaseTerm,
+      leaseTerm,                
       availabilityMonth,
       availabilityDay,
       heading,
-      roomImages,
+      roomImages,               
       description,
       community,
       latitude,
@@ -37,10 +40,16 @@ export const createProperty = async (req, res) => {
 
     await newProperty.save();
     res.status(201).json({ success: true, property: newProperty });
-  } catch (err) {
-    res.status(500).json({ message: 'Error saving property', error: err.message });
-  }
-};
+  }catch (err) {
+  console.error("❌ Property creation error:");
+  console.dir(err, { depth: null });  // shows nested objects
+  res.status(500).json({
+    success: false,
+    message: err.message || "Unknown error",
+    error: err,  // send full object to frontend
+  });
+}
+}
 
 export const getUserProperties = async (req, res) => {
   try {
@@ -54,7 +63,6 @@ export const getUserProperties = async (req, res) => {
 
 export const getAllProperties = async (req, res) => {
   try {
-    // Sort by most recently created first (descending order)
     const properties = await Property.find().sort({ createdAt: -1 });
     res.status(200).json({ success: true, properties });
   } catch (err) {
@@ -68,7 +76,7 @@ export const getPropertiesByCity = async (req, res) => {
 
   try {
     const properties = await Property.find({
-      city: { $regex: new RegExp(`^${city}$`, 'i') } // Case-insensitive match
+      city: { $regex: new RegExp(`^${city}$`, 'i') } 
     });
 
     res.status(200).json({ success: true, properties });
