@@ -1,14 +1,16 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState,useContext} from "react";
 import api from "../utils/axiosInstance";
-import { assets } from "../assets/assets"; // ✅ for admin sticker/logo
+import { assets } from "../assets/assets"; 
+import { AppContext } from "../context/Appcontext";
 
 export default function UsersPage() {
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
+  const { backendurl } = useContext(AppContext);
 
   const load = async () => {
     try {
-      const { data } = await api.get("/admin/users");
+      const { data } = await api.get(backendurl+"/api/admin/users");
       if (data.success) setUsers(data.users);
     } catch (e) {
       console.error(e);

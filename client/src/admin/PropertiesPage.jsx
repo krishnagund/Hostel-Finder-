@@ -1,14 +1,16 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState,useContext } from "react";
 import api from "../utils/axiosInstance";
 import { assets } from "../assets/assets";
+import { AppContext } from "../context/Appcontext";
 
 export default function PropertiesPage() {
   const [props, setProps] = useState([]);
   const [loading, setLoading] = useState(true);
+  const { backendurl } = useContext(AppContext);
 
   const load = async () => {
     try {
-      const { data } = await api.get("/admin/properties?status=pending");
+      const { data } = await api.get(backendurl+"/api/admin/properties?status=pending");
       if (data.success) setProps(data.properties);
     } catch (e) {
       console.error(e);

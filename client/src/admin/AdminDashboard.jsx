@@ -1,4 +1,4 @@
-import { useContext, useState } from "react";
+import { useContext, useState} from "react";
 import { NavLink, Outlet, useNavigate, useLocation } from "react-router-dom";
 import { AppContext } from "../context/Appcontext";
 import { assets } from "../assets/assets";
