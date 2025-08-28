@@ -19,22 +19,27 @@
 
   connectDB(); // calling the connectDB function to connect to the MongoDB database when the server starts
 
-  const allowedOrigins = ['http://localhost:5173',process.env.CLIENT_URL,'https://hostelfinder-re4keb6vb-krushnas-projects-69e38265.vercel.app/','https://hostelfinder-git-main-krushnas-projects-69e38265.vercel.app/' ];
+  const allowedOrigins = ['http://localhost:5173','https://hostelfind.vercel.app'];
   const __filename = fileURLToPath(import.meta.url);
   const __dirname = path.dirname(__filename);
   app.use(express.json()); // used for parsing JSON bodies in requests
   app.use(cookieParser()); // used for parsing cookies in requests
   app.use(bodyParser.urlencoded({ extended: true })); // used for parsing URL-encoded bodies in requests
   app.use(cors({
-    origin: function (origin, callback) {
-      if (!origin || allowedOrigins.includes(origin)) {
-        callback(null, true);
-      } else {
-        callback(new Error("Not allowed by CORS"));
-      }
-    },
-    credentials: true
-  }));
+  origin: function (origin, callback) {
+    if (!origin) return callback(null, true);
+
+    if (
+      allowedOrigins.includes(origin) ||
+      /\.vercel\.app$/.test(origin) // ✅ allow all Vercel preview URLs
+    ) {
+      callback(null, true);
+    } else {
+      callback(new Error("Not allowed by CORS: " + origin));
+    }
+  },
+  credentials: true,
+}));
 
 
   app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
