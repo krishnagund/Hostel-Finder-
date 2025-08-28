@@ -1,6 +1,6 @@
 import { useContext, useState } from "react";
 import { assets } from "../assets/assets";
-import { AppContext } from "../context/AppContext";
+import { AppContext } from "../context/Appcontext";
 import { useNavigate } from "react-router-dom";
 import RenterInfo from "./RenterInfo";
 import { useLanguage } from "../context/LanguageContext";

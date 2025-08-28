@@ -1,5 +1,5 @@
 import { useContext } from "react";
-import { AppContext } from "../context/AppContext";
+import { AppContext } from "../context/Appcontext";
 import RenterInfo from "../components/RenterInfo";
 import TranslatedText from "../components/TranslatedText";
 

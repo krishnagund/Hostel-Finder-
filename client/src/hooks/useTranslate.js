@@ -1,6 +1,6 @@
 import { useState, useEffect,useContext } from "react";
 import { useLanguage } from "../context/LanguageContext";
-import { AppContext } from "../context/AppContext";
+import { AppContext } from "../context/Appcontext";
 
 export function useTranslate(text) {
   const { language } = useLanguage();
