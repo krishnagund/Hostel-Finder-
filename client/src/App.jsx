@@ -11,7 +11,7 @@ import StudentProfile from "./pages/StudentProfile"
 import Inbox from "./pages/Inbox"
 import AllProperties from "./pages/AllProperties";
 import HostelSearchPage from "./pages/HostelSearchPage";
-import Footer from "./components/footer";
+import Footer from "./components/Footer";
 import FavoriteProperties from "./pages/FavoriteProperties";
 import ProtectedRoute from "./pages/ProtectedRoute";
 import LoginPage from "./pages/LoginPage";
