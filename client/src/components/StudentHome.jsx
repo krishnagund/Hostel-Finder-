@@ -10,6 +10,7 @@ import { useLanguage } from "../context/LanguageContext";
 import TranslatedText from "./TranslatedText";
 import LanguageToggle from "./LanguageToggle";
 import { FaUser } from "react-icons/fa"; // ✅ Import profile icon
+import { Link } from "react-router-dom";
 
 const StudentHome = () => {
   const navigate = useNavigate();
@@ -359,12 +360,12 @@ const StudentHome = () => {
 
         {/* See All Button */}
         <div className="mt-10 sm:mt-12">
-          <a
-            href="/all-properties"
-            className="text-white bg-[#3A2C99] px-3 sm:px-4 py-2 rounded-md hover:bg-white hover:text-black transition cursor-pointer text-sm sm:text-base"
-          >
-            <RenterInfo text="See All New Rental Properties" />
-          </a>
+          <Link
+  to="/all-properties"
+  className="text-white bg-[#3A2C99] px-4 py-2 rounded-md hover:bg-white hover:text-black transition"
+>
+  <RenterInfo text="See All New Rental Properties" />
+</Link>
         </div>
 
         <div className="mt-8">

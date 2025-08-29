@@ -12,6 +12,7 @@ import RenterInfo from "../components/RenterInfo";
 import TranslatedText from "../components/TranslatedText";
 import LanguageToggle from "../components/LanguageToggle";
 import { FaBars, FaTimes } from "react-icons/fa";
+import { Link } from "react-router-dom";
 
 const Home = () => {
   const [showLoginModal, setShowLoginModal] = useState(false);
@@ -341,12 +342,12 @@ const Home = () => {
 
         {/* See All */}
         <div className="mt-12">
-          <a
-            href="/all-properties"
-            className="text-white bg-[#3A2C99] px-4 py-2 rounded-md hover:bg-white hover:text-black transition"
-          >
-            <RenterInfo text="See All New Rental Properties" />
-          </a>
+        <Link
+  to="/all-properties"
+  className="text-white bg-[#3A2C99] px-4 py-2 rounded-md hover:bg-white hover:text-black transition"
+>
+  <RenterInfo text="See All New Rental Properties" />
+</Link>
         </div>
 
         <div className="mt-10">
