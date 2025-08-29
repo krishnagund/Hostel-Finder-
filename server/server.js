@@ -19,7 +19,7 @@
 
   connectDB(); // calling the connectDB function to connect to the MongoDB database when the server starts
 
-  const allowedOrigins = ['http://localhost:5173','https://hostelfind.vercel.app','https://krisha-nine.vercel.app'];
+  const allowedOrigins = ['http://localhost:5173','https://hostelfind.vercel.app','https://hostelfinder-silk.vercel.app',process.env.CLIENT_URL];
   const __filename = fileURLToPath(import.meta.url);
   const __dirname = path.dirname(__filename);
   app.use(express.json()); // used for parsing JSON bodies in requests
