@@ -43,17 +43,17 @@ const StudentHome = () => {
   };
 
   const fetchFavorites = async () => {
-    if (!isLoggedin) return;
-    try {
-      const res = await fetch(`${backendurl}/api/user/favorites`, {
-        credentials: "include",
-      });
-      const data = await res.json();
-      setFavorites(data.favorites.map((fav) => fav._id));
-    } catch (err) {
-      console.error("Error fetching favorites", err);
-    }
-  };
+  if (!isLoggedin) return;
+  try {
+    const res = await fetch(`${backendurl}/api/user/favorites`, {
+      credentials: "include",
+    });
+    const data = await res.json();
+    setFavorites(data.favorites || []); // store full objects, not just IDs
+  } catch (err) {
+    console.error("Error fetching favorites", err);
+  }
+};
 
   const fetchProperties = async () => {
     try {
@@ -85,26 +85,25 @@ const StudentHome = () => {
   }, [isLoggedin]);
 
   const handleFavoriteToggle = async (propertyId) => {
-    if (!isLoggedin) {
-      setAuthState("Login");
-      setShowLoginModal(true);
-      return;
-    }
+  if (!isLoggedin) {
+    setAuthState("Login");
+    setShowLoginModal(true);
+    return;
+  }
 
-    try {
-      const res = await fetch(`${backendurl}/api/user/favorites/${propertyId}`, {
-        method: "POST",
-        credentials: "include",
-      });
-
-      const data = await res.json();
-      if (data.favorites) {
-        setFavorites(data.favorites);
-      }
-    } catch (err) {
-      console.error("Error toggling favorite", err);
+  try {
+    const res = await fetch(`${backendurl}/api/user/favorites/${propertyId}`, {
+      method: "POST",
+      credentials: "include",
+    });
+    const data = await res.json();
+    if (data.favorites) {
+      setFavorites(data.favorites); // again store full objects
     }
-  };
+  } catch (err) {
+    console.error("Error toggling favorite", err);
+  }
+};
 
   const unreadCount = messages.filter((msg) => !msg.read).length;
 
@@ -275,15 +274,15 @@ const StudentHome = () => {
                     onClick={() => handleFavoriteToggle(property._id)}
                     className="focus:outline-none bg-white rounded-md p-1 sm:p-2 shadow-md hover:bg-gray-100 transition w-8 sm:w-10"
                   >
-                    <span
-                      className={`text-xl sm:text-2xl ${
-                        favorites.includes(property._id)
-                          ? "text-red-500"
-                          : "text-gray-400"
-                      }`}
-                    >
-                      ♥
-                    </span>
+                   <span
+  className={`text-xl sm:text-2xl ${
+    favorites.some((fav) => fav._id === property._id)
+      ? "text-red-500"
+      : "text-gray-400"
+  }`}
+>
+  ♥
+</span>
                   </button>
                 </div>
 
