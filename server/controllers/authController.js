@@ -29,7 +29,15 @@ export const register = async(req,res) =>{
  
             const token = jwt.sign({id : user._id},process.env.JWT_SECRET,{expiresIn : '7d'}); // creating a JWT token for the user
 
-            res.cookie('token',token,{httpOnly : true,secure : process.env.NODE_ENV === 'production',sameSite:process.env.NODE_ENV === 'production' ? 'none' : 'strict',maxAge : 7*24*60*60*1000}); // setting the token as a cookie in the response
+      res.cookie("token", token, {
+  httpOnly: true,
+  secure: process.env.NODE_ENV === "production",
+  sameSite: process.env.NODE_ENV === "production" ? "none" : "strict",
+  path: "/",             // ✅ must match logout
+  maxAge: 7 * 24 * 60 * 60 * 1000,
+});
+
+
              
             // Generate OTP
 const otp = String(Math.floor(100000 + Math.random() * 900000));
@@ -103,14 +111,14 @@ export const login = async (req, res) => {
     const isProd = process.env.NODE_ENV === "production";
     const SEVEN_DAYS_MS = 7 * 24 * 60 * 60 * 1000;
 
-    // ✅ Set cookie
-    res.cookie("token", token, {
-      httpOnly: true,
-      secure: isProd,
-      sameSite: isProd ? "none" : "strict",
-      path: "/",             // important: so clearCookie also works globally
-      maxAge: SEVEN_DAYS_MS, // expires in 7 days
-    });
+   res.cookie("token", token, {
+  httpOnly: true,
+  secure: process.env.NODE_ENV === "production",
+  sameSite: process.env.NODE_ENV === "production" ? "none" : "strict",
+  path: "/", // ✅ important for logout + global access
+  maxAge: 7 * 24 * 60 * 60 * 1000,
+});
+
 
     return res.json({
       success: true,
@@ -133,13 +141,13 @@ export const logout = async (req, res) => {
   try {
     const isProd = process.env.NODE_ENV === "production";
 
-    // ✅ Clear cookie
-    res.clearCookie("token", {
-      httpOnly: true,
-      secure: isProd,
-      sameSite: isProd ? "none" : "strict",
-      path: "/", // must match the path used in res.cookie()
-    });
+   res.clearCookie("token", {
+  httpOnly: true,
+  secure: process.env.NODE_ENV === "production",
+  sameSite: process.env.NODE_ENV === "production" ? "none" : "strict",
+  path: "/", // ✅ must match login/register
+});
+
 
     return res.status(200).json({ success: true, message: "Logged out successfully" });
   } catch (error) {
