@@ -1,14 +1,17 @@
 import React from "react";
-import { Routes,Route } from "react-router-dom";
+import { Routes,Route,useLocation } from "react-router-dom";
 import Home from './pages/Home';
 import ResetPassword from './pages/ResetPassword';  
+import ScrollToTop from "./components/ScrollToTop";
 import EmailVerify from "./pages/EmailVerify";
 import StudentHome from "./components/StudentHome";
 import HostelOwnerHome from "./components/HostelOwnerHome";
 import { ToastContainer} from "react-toastify";
 import 'react-toastify/dist/ReactToastify.css';
 import StudentProfile from "./pages/StudentProfile"
-import Inbox from "./pages/Inbox"
+import StudentInbox from "./pages/Inbox"
+
+
 import AllProperties from "./pages/AllProperties";
 import HostelSearchPage from "./pages/HostelSearchPage";
 import Footer from "./components/Footer";
@@ -25,12 +28,16 @@ import EntryGate from "./pages/EntryGate";
 
 
 const App = () => {
+  const location = useLocation();
+  const hideFooterRoutes = ["/hostels"];
+  const shouldHideFooter = hideFooterRoutes.includes(location.pathname);
   return (
     <div>
       <ToastContainer />
+      <ScrollToTop />
       <Routes>
-         <Route path='/' element={<EntryGate />} />
-        <Route path='/' element={<Home/>}/>
+        <Route path='/' element={<EntryGate />} />
+        <Route path='/home' element={<Home/>}/>
         <Route
   path="/student"
   element={
@@ -52,7 +59,8 @@ const App = () => {
         <Route path='/email-verify' element={<EmailVerify/>}/>
         <Route path='/reset-password' element={<ResetPassword/>}/>
          <Route path="/student-profile" element={ <ProtectedRoute allowedRoles={["student"]}><StudentProfile /></ProtectedRoute>} />
-      <Route path="/inbox" element={<ProtectedRoute allowedRoles={["student"]}><Inbox /></ProtectedRoute>} />
+         <Route path="/inbox" element={<ProtectedRoute allowedRoles={["student"]}><StudentInbox /></ProtectedRoute>} />
+
       <Route path="/all-properties" element={<AllProperties />} />
        <Route path="/hostels" element={<HostelSearchPage />} /> 
        <Route path="/favorites" element={<ProtectedRoute allowedRoles={["student"]}><FavoriteProperties /></ProtectedRoute>} />
@@ -98,7 +106,7 @@ const App = () => {
 
 
       </Routes>
-      <Footer />
+      {!shouldHideFooter && <Footer />}
     </div>
   );
 }

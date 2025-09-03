@@ -1,9 +1,12 @@
-import React, { useContext, useState } from "react";
+import React, { useContext, useState, useEffect } from "react";
 import { assets } from "../assets/assets";
 import { AppContext } from "../context/Appcontext";
 import axios from "axios";
 import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
+
+// Note: For better mobile experience, ensure your HTML has:
+// <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 
 // 👇 Optional: You can also move this into a separate file and import it
 const ResetPasswordForm = ({ backendurl, onBack }) => {
@@ -140,16 +143,56 @@ const ResetPasswordForm = ({ backendurl, onBack }) => {
   );
 };
 
-const LoginModal = ({ isOpen, onClose }) => {
+const LoginModal = ({ isOpen, onClose, initialState = "Login" }) => {
   const navigate = useNavigate();
   const { backendurl, setIsLoggedin, getUserData,setUserData, setUserRole  } = useContext(AppContext);
-  const [state, setState] = useState("Login"); // 'Login' or 'Sign Up'
+  const [state, setState] = useState(initialState); // Use initialState prop
   const [showResetPassword, setShowResetPassword] = useState(false);
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [role, setRole] = useState("student");
    const [phone, setPhone] = useState(""); // ← this fixes the error
+
+  // Update state when initialState prop changes
+  useEffect(() => {
+    setState(initialState);
+  }, [initialState]);
+
+  // Clear form fields when modal closes
+  useEffect(() => {
+    if (!isOpen) {
+      // Reset all form fields when modal closes
+      setName("");
+      setEmail("");
+      setPassword("");
+      setPhone("");
+      setRole("student");
+      setShowResetPassword(false);
+    }
+  }, [isOpen]);
+
+  // Focus management when modal opens
+  useEffect(() => {
+    if (isOpen) {
+      // Focus on the first input when modal opens
+      const firstInput = document.querySelector('input[type="text"], input[type="email"]');
+      if (firstInput) {
+        setTimeout(() => firstInput.focus(), 100);
+      }
+    }
+  }, [isOpen]);
+
+  const handleClose = () => {
+    // Clear form fields before closing
+    setName("");
+    setEmail("");
+    setPassword("");
+    setPhone("");
+    setRole("student");
+    setShowResetPassword(false);
+    onClose();
+  };
 
 const onSubmitHandler = async (e) => {
   e.preventDefault();
@@ -211,18 +254,24 @@ const onSubmitHandler = async (e) => {
 
   if (!isOpen) return null;
 
-  return (
-<div className="fixed inset-0 z-[9999] flex items-center justify-center backdrop-blur-sm bg-black/70">
-      <div className="relative bg-slate-900 p-8 rounded-lg shadow-xl w-full max-w-md text-indigo-300">
+    return (
+    <div 
+      className="fixed inset-0 z-[9999] flex items-start sm:items-center justify-center backdrop-blur-sm bg-black/70 p-4 pt-16 sm:pt-4"
+      onClick={handleClose}
+    >
+      <div 
+        className="relative bg-slate-900 p-6 sm:p-8 rounded-lg shadow-xl w-full max-w-md text-indigo-300 max-h-[85vh] sm:max-h-[90vh] overflow-y-auto"
+        onClick={(e) => e.stopPropagation()}
+      >
         <button
-          onClick={onClose}
-          className="absolute top-2 right-3 text-white text-xl hover:text-indigo-300 cursor-pointer"
+          onClick={handleClose}
+          className="absolute top-2 right-3 text-white text-xl hover:text-indigo-300 cursor-pointer z-10"
         >
           &times;
         </button>
 
         <img
-          onClick={onClose}
+          onClick={handleClose}
           src={assets.logo1}
           alt="logo"
           className="mx-auto mb-6 w-20 cursor-pointer"
@@ -239,81 +288,85 @@ const onSubmitHandler = async (e) => {
                 : "Login to Your Account!"}
             </p>
 
-            <form onSubmit={onSubmitHandler}>
+            <form onSubmit={onSubmitHandler} className="space-y-3">
               {state === "Sign Up" && (
-                <div className="mb-3 flex items-center gap-3 w-full px-5 py-2.5 rounded-full bg-[#333A5C]">
-                  <img src={assets.person_icon} alt="" />
+                <div className="flex items-center gap-3 w-full px-5 py-2.5 rounded-full bg-[#333A5C]">
+                  <img src={assets.person_icon} alt="" className="flex-shrink-0" />
                   <input
                     onChange={(e) => setName(e.target.value)}
                     value={name}
-                    className="bg-transparent outline-none w-full"
+                    className="bg-transparent outline-none w-full text-sm sm:text-base"
                     type="text"
                     placeholder="Full Name"
                     required
+                    autoComplete="name"
                   />
                 </div>
               )}
 
               {state === "Sign Up" && (
-  <div className="mb-3 flex items-center gap-3 w-full px-5 py-2.5 rounded-full bg-[#333A5C]">
-    <img src={assets.mail_icon} alt="" />
+  <div className="flex items-center gap-3 w-full px-5 py-2.5 rounded-full bg-[#333A5C]">
+    <img src={assets.mail_icon} alt="" className="flex-shrink-0" />
     <input
       onChange={(e) => setPhone(e.target.value)}
       value={phone}
-      className="bg-transparent outline-none w-full"
-      type="text"
+      className="bg-transparent outline-none w-full text-sm sm:text-base"
+      type="tel"
       placeholder="Phone Number"
       required
+      autoComplete="tel"
     />
   </div>
 )}
 
 
-              <div className="mb-3 flex items-center gap-3 w-full px-5 py-2.5 rounded-full bg-[#333A5C]">
-                <img src={assets.mail_icon} alt="" />
+              <div className="flex items-center gap-3 w-full px-5 py-2.5 rounded-full bg-[#333A5C]">
+                <img src={assets.mail_icon} alt="" className="flex-shrink-0" />
                 <input
                   onChange={(e) => setEmail(e.target.value)}
                   value={email}
-                  className="bg-transparent outline-none w-full"
+                  className="bg-transparent outline-none w-full text-sm sm:text-base"
                   type="email"
                   placeholder="Email id"
                   required
+                  autoComplete="email"
                 />
               </div>
 
-              <div className="mb-3 flex items-center gap-3 w-full px-5 py-2.5 rounded-full bg-[#333A5C]">
-                <img src={assets.lock_icon} alt="" />
+              <div className="flex items-center gap-3 w-full px-5 py-2.5 rounded-full bg-[#333A5C]">
+                <img src={assets.lock_icon} alt="" className="flex-shrink-0" />
                 <input
                   onChange={(e) => setPassword(e.target.value)}
                   value={password}
-                  className="bg-transparent outline-none w-full"
+                  className="bg-transparent outline-none w-full text-sm sm:text-base"
                   type="password"
                   placeholder="Password"
                   required
+                  autoComplete="current-password"
                 />
               </div>
 
               {state === "Sign Up" && (
-                <div className="mb-4 px-2 text-sm">
+                <div className="px-2 text-sm">
                   <label className="block mb-1">Register as:</label>
                   <div className="flex gap-4 text-white">
-                    <label>
+                    <label className="flex items-center">
                       <input
                         type="radio"
                         value="student"
                         checked={role === "student"}
                         onChange={(e) => setRole(e.target.value)}
-                        className="mr-1"
+                        className="mr-2"
                       />
                       Student
                     </label>
-                    <label>
+                    <label className="flex items-center">
                       <input
                         type="radio"
                         value="owner"
                         checked={role === "owner"}
                         onChange={(e) => setRole(e.target.value)}
-                        className="mr-1"
+                        className="mr-2"
                       />
                       Hostel Owner
                     </label>
@@ -322,7 +375,7 @@ const onSubmitHandler = async (e) => {
               )}
 
               <p
-                className="mb-4 text-indigo-400 cursor-pointer text-sm underline"
+                className="text-indigo-400 cursor-pointer text-sm underline text-center"
                 onClick={() => setShowResetPassword(true)}
               >
                 Forgot Password?
@@ -330,7 +383,7 @@ const onSubmitHandler = async (e) => {
 
               <button
                 type="submit"
-                className="w-full py-2.5 rounded-full bg-gradient-to-r from-indigo-500 to-indigo-900 text-white font-medium cursor-pointer"
+                className="w-full py-2.5 rounded-full bg-gradient-to-r from-indigo-500 to-indigo-900 text-white font-medium cursor-pointer hover:from-indigo-600 hover:to-indigo-800 transition-all"
               >
                 {state}
               </button>

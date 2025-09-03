@@ -11,6 +11,7 @@ import { useLanguage } from "../context/LanguageContext";
 import RenterInfo from "../components/RenterInfo";
 import TranslatedText from "../components/TranslatedText";
 import LanguageToggle from "../components/LanguageToggle";
+
 import { FaBars, FaTimes } from "react-icons/fa";
 import { Link } from "react-router-dom";
 
@@ -112,24 +113,37 @@ const Home = () => {
         <div className="hidden md:flex items-center gap-3">
           <LanguageToggle />
           <div className="h-6 border-l border-[#3A2C99] mx-2"></div>
-          <button
-            onClick={() => {
-              setAuthState("Sign Up");
-              setShowLoginModal(true);
-            }}
-            className="text-white bg-[#3A2C99] px-4 py-2 rounded-md hover:bg-white hover:text-black transition"
-          >
-            Register
-          </button>
-          <button
-            onClick={() => {
-              setAuthState("Login");
-              setShowLoginModal(true);
-            }}
-            className="text-white bg-[#3A2C99] px-4 py-2 rounded-md hover:bg-white hover:text-black transition"
-          >
-            Log in
-          </button>
+          {!isLoggedin ? (
+            <>
+              <button
+                onClick={() => {
+                  setAuthState("Sign Up");
+                  setShowLoginModal(true);
+                }}
+                className="text-white bg-[#3A2C99] px-4 py-2 rounded-md hover:bg-white hover:text-black transition"
+              >
+                Register
+              </button>
+              <button
+                onClick={() => {
+                  setAuthState("Login");
+                  setShowLoginModal(true);
+                }}
+                className="text-white bg-[#3A2C99] px-4 py-2 rounded-md hover:bg-white hover:text-black transition"
+              >
+                Log in
+              </button>
+            </>
+          ) : (
+            <>
+              <Link
+                to="/inbox"
+                className="text-white bg-[#3A2C99] px-4 py-2 rounded-md hover:bg-white hover:text-black transition"
+              >
+                Messages
+              </Link>
+            </>
+          )}
         </div>
 
         {/* Mobile Menu Toggle */}
@@ -146,26 +160,40 @@ const Home = () => {
         {menuOpen && (
           <div className="absolute top-full right-0 bg-white shadow-md flex flex-col gap-3 px-6 py-4 w-48 z-20 md:hidden">
             <LanguageToggle />
-            <button
-              onClick={() => {
-                setAuthState("Sign Up");
-                setShowLoginModal(true);
-                setMenuOpen(false);
-              }}
-              className="text-white bg-[#3A2C99] px-4 py-2 rounded-md hover:bg-white hover:text-black transition"
-            >
-              Register
-            </button>
-            <button
-              onClick={() => {
-                setAuthState("Login");
-                setShowLoginModal(true);
-                setMenuOpen(false);
-              }}
-              className="text-white bg-[#3A2C99] px-4 py-2 rounded-md hover:bg-white hover:text-black transition"
-            >
-              Log in
-            </button>
+            {!isLoggedin ? (
+              <>
+                <button
+                  onClick={() => {
+                    setAuthState("Sign Up");
+                    setShowLoginModal(true);
+                    setMenuOpen(false);
+                  }}
+                  className="text-white bg-[#3A2C99] px-4 py-2 rounded-md hover:bg-white hover:text-black transition"
+                >
+                  Register
+                </button>
+                <button
+                  onClick={() => {
+                    setAuthState("Login");
+                    setShowLoginModal(true);
+                    setMenuOpen(false);
+                  }}
+                  className="text-white bg-[#3A2C99] px-4 py-2 rounded-md hover:bg-white hover:text-black transition"
+                >
+                  Log in
+                </button>
+              </>
+            ) : (
+              <>
+                <Link
+                  to="/inbox"
+                  className="text-white bg-[#3A2C99] px-4 py-2 rounded-md hover:bg-white hover:text-black transition text-center"
+                  onClick={() => setMenuOpen(false)}
+                >
+                  Messages
+                </Link>
+              </>
+            )}
           </div>
         )}
       </nav>

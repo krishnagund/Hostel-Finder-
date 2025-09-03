@@ -4,6 +4,7 @@ import { AppContext } from "../context/Appcontext";
 import { toast } from "react-toastify";
 
 const PropertyDetailsModal = ({ property, onClose }) => {
+  
   const [lightboxOpen, setLightboxOpen] = useState(false);
   const [currentImage, setCurrentImage] = useState(0);
   const { backendurl } = useContext(AppContext);
@@ -15,34 +16,20 @@ const PropertyDetailsModal = ({ property, onClose }) => {
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
   const [moveInDate, setMoveInDate] = useState("");
-  const [chatInfo, setChatInfo] = useState(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  if (!property) return null;
+  // Don't render if no property
+  if (!property) {
+    return null;
+  }
 
-  // ✅ Handle browser back button to close modal
-  useEffect(() => {
-    // Add a new history entry when modal opens
-    window.history.pushState({ modalOpen: true }, "");
 
-    const handlePopState = () => {
-      onClose(); // close modal instead of navigating away
-    };
-
-    window.addEventListener("popstate", handlePopState);
-
-    return () => {
-      window.removeEventListener("popstate", handlePopState);
-
-      // ✅ If modal is closing normally (via X button),
-      // go back one step so history is restored
-      if (window.history.state && window.history.state.modalOpen) {
-        window.history.back();
-      }
-    };
-  }, [onClose]);
 
   const handleFormSubmit = async (e) => {
     e.preventDefault();
+    
+    setIsSubmitting(true);
+    
     try {
       const res = await axios.post(
         `${backendurl}/api/messages/send`,
@@ -58,28 +45,26 @@ const PropertyDetailsModal = ({ property, onClose }) => {
       );
 
       if (res?.data?.success) {
-        toast.success(res.data.message || "Message sent successfully!");
+        toast.success("Message sent successfully!");
         setName("");
         setEmail("");
         setPhone("");
         setMoveInDate("");
         setMessage("");
-        if (res.data.stream?.channelId) {
-          setChatInfo({ channelId: res.data.stream.channelId });
-        }
+        onClose();
         return;
       }
 
       if (res?.data?.needsAuth) {
-        toast.error("Email not registered. Please register first.");
+        toast.error("Please log in to send a message.");
         return;
       }
 
       toast.error(res?.data?.message || "Failed to send message");
     } catch (err) {
-      toast.error(
-        "Firstly please register and then try to send msg with the same email"
-      );
+      toast.error("Failed to send message. Please try again.");
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -87,11 +72,15 @@ const PropertyDetailsModal = ({ property, onClose }) => {
     <>
       {/* Overlay */}
       <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
-        <div className="relative bg-white rounded-lg shadow-lg w-[95%] max-w-7xl max-h-screen h-auto sm:h-[90%] p-4 sm:p-6 overflow-hidden flex flex-col">
+        <div 
+          className="relative bg-white rounded-lg shadow-lg w-[95%] max-w-7xl max-h-screen h-auto sm:h-[90%] p-4 sm:p-6 overflow-hidden flex flex-col"
+          onClick={(e) => e.stopPropagation()}
+        >
           {/* Close button */}
           <button
-            className="absolute top-3 right-3 text-2xl font-bold text-gray-700 hover:text-red-500 z-10 cursor-pointer"
+            className="absolute top-3 right-3 text-2xl font-bold text-gray-700 hover:text-red-500 z-10 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
             onClick={onClose}
+            disabled={isSubmitting}
           >
             ✕
           </button>
@@ -165,44 +154,57 @@ const PropertyDetailsModal = ({ property, onClose }) => {
                   <input
                     type="text"
                     placeholder="Name*"
-                    className="w-full border p-2 rounded"
+                    className="w-full border p-2 rounded disabled:opacity-50"
                     value={name}
                     onChange={(e) => setName(e.target.value)}
                     required
+                    disabled={isSubmitting}
                   />
                   <input
                     type="email"
                     placeholder="Email Address*"
-                    className="w-full border p-2 rounded"
+                    className="w-full border p-2 rounded disabled:opacity-50"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     required
+                    disabled={isSubmitting}
                   />
                   <input
                     type="tel"
                     placeholder="Phone Number*"
-                    className="w-full border p-2 rounded"
+                    className="w-full border p-2 rounded disabled:opacity-50"
                     value={phone}
                     onChange={(e) => setPhone(e.target.value)}
                     required
+                    disabled={isSubmitting}
                   />
                   <input
                     type="date"
-                    className="w-full border p-2 rounded"
+                    className="w-full border p-2 rounded disabled:opacity-50"
                     value={moveInDate}
                     onChange={(e) => setMoveInDate(e.target.value)}
+                    disabled={isSubmitting}
                   />
                   <textarea
                     rows="3"
-                    className="w-full border p-2 rounded"
+                    className="w-full border p-2 rounded disabled:opacity-50"
                     value={message}
                     onChange={(e) => setMessage(e.target.value)}
+                    disabled={isSubmitting}
                   ></textarea>
                   <button
                     type="submit"
-                    className="w-full bg-[#3A2C99] text-white py-2 rounded hover:bg-white hover:text-black border border-[#3A2C99] cursor-pointer"
+                    className="w-full bg-[#3A2C99] text-white py-2 rounded hover:bg-white hover:text-black border border-[#3A2C99] cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
+                    disabled={isSubmitting}
                   >
-                    Send Message
+                    {isSubmitting ? (
+                      <>
+                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                        Sending...
+                      </>
+                    ) : (
+                      "Send Message"
+                    )}
                   </button>
                 </form>
               </div>

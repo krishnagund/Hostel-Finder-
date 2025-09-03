@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { assets } from "../assets/assets";
 import { AppContext } from "../context/Appcontext";
 import PropertyDetailsModal from "../pages/PropertyDetailsModal";
+import LoginModal from "../pages/LoginModal";
 import StatsSection from "./StatsSection";
 import TopCities from "./TopCities";
 import RenterInfo from "./RenterInfo";
@@ -13,16 +14,19 @@ import { FaUser } from "react-icons/fa"; // ✅ Import profile icon
 import { Link } from "react-router-dom";
 
 const StudentHome = () => {
+  
   const navigate = useNavigate();
   const { userData, backendurl, isLoggedin } = useContext(AppContext);
   const [properties, setProperties] = useState([]);
   const [favorites, setFavorites] = useState([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedProperty, setSelectedProperty] = useState(null);
-  const [messages, setMessages] = useState([]);
+
   const { language, setLanguage } = useLanguage();
   const [profileOpen, setProfileOpen] = useState(false); 
   const profileRef = useRef(null);
+  const [showLoginModal, setShowLoginModal] = useState(false);
+  const [authState, setAuthState] = useState("Login");
 
   useEffect(() => {
   const handleClickOutside = (event) => {
@@ -70,18 +74,6 @@ const StudentHome = () => {
   useEffect(() => {
     fetchProperties();
     fetchFavorites();
-
-    (async () => {
-      try {
-        const res = await fetch(`${backendurl}/api/messages/student`, {
-          credentials: "include",
-        });
-        const data = await res.json();
-        if (data.success) setMessages(data.messages);
-      } catch (err) {
-        console.error("StudentHome inbox load error:", err);
-      }
-    })();
   }, [isLoggedin]);
 
   const handleFavoriteToggle = async (propertyId) => {
@@ -105,7 +97,7 @@ const StudentHome = () => {
   }
 };
 
-  const unreadCount = messages.filter((msg) => !msg.read).length;
+
 
   return (
     <div className="bg-gray-50 min-h-screen font-sans">
@@ -180,11 +172,7 @@ const StudentHome = () => {
                   className="px-4 py-2 hover:bg-gray-100 text-left flex justify-between items-center"
                 >
                   <RenterInfo text="Inbox" />
-                  {unreadCount > 0 && (
-                    <span className="bg-red-500 text-white text-xs px-2 py-0.5 rounded-full">
-                      {unreadCount}
-                    </span>
-                  )}
+            
                 </button>
               </div>
             )}
@@ -340,10 +328,10 @@ const StudentHome = () => {
                   </p>
 
                   <div className="mt-4 text-right">
-                    <button
-                      onClick={() => setSelectedProperty(property)}
-                      className="text-white bg-[#3A2C99] px-3 sm:px-4 py-2 rounded-md hover:bg-white hover:text-black transition cursor-pointer text-sm sm:text-base"
-                    >
+                                         <button
+                       onClick={() => setSelectedProperty(property)}
+                       className="text-white bg-[#3A2C99] px-3 sm:px-4 py-2 rounded-md hover:bg-white hover:text-black transition cursor-pointer text-sm sm:text-base"
+                     >
                       <RenterInfo text="Details" />
                     </button>
                   </div>
@@ -383,6 +371,13 @@ const StudentHome = () => {
           }}
         />
       )}
+
+      {/* Login Modal */}
+      <LoginModal
+        isOpen={showLoginModal}
+        onClose={() => setShowLoginModal(false)}
+        initialState={authState}
+      />
     </div>
   );
 };
