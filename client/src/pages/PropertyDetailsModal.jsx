@@ -178,6 +178,7 @@ const PropertyDetailsModal = ({ property, onClose }) => {
                     required
                     disabled={isSubmitting}
                   />
+                  <label className="block text-sm font-medium mb-1">Joining Date</label>
                   <input
                     type="date"
                     className="w-full border p-2 rounded disabled:opacity-50"
@@ -185,6 +186,7 @@ const PropertyDetailsModal = ({ property, onClose }) => {
                     onChange={(e) => setMoveInDate(e.target.value)}
                     disabled={isSubmitting}
                   />
+                  <label className="block text-sm font-medium mb-1">Messege</label>
                   <textarea
                     rows="3"
                     className="w-full border p-2 rounded disabled:opacity-50"

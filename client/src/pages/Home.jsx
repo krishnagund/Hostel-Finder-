@@ -214,27 +214,33 @@ const Home = () => {
           </p>
 
           {/* Search Bar */}
-          <div className="flex flex-col sm:flex-row justify-center items-center gap-2 max-w-lg mx-auto">
-            <input
-              type="text"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder={
-                language === "en"
-                  ? "Search city or college..."
-                  : "शहर या कॉलेज खोजें..."
-              }
-              className="w-full px-4 py-3 bg-white text-black rounded-md border border-gray-300 shadow-md focus:outline-none focus:ring-1 focus:ring-blue-500"
-            />
-            <button
-              onClick={() =>
-                navigate(`/hostels?city=${encodeURIComponent(searchQuery)}`)
-              }
-              className="bg-[#3A2C99] text-white px-5 py-3 rounded-md hover:bg-white hover:text-black transition"
-            >
-              🔍
-            </button>
-          </div>
+         <div className="flex flex-col sm:flex-row justify-center items-center gap-2 max-w-lg mx-auto">
+  <input
+    type="text"
+    value={searchQuery}
+    onChange={(e) => setSearchQuery(e.target.value)}
+    onKeyDown={(e) => {
+      if (e.key === "Enter") {
+        navigate(`/hostels?city=${encodeURIComponent(searchQuery)}`);
+      }
+    }}
+    placeholder={
+      language === "en"
+        ? "Search city or college..."
+        : "शहर या कॉलेज खोजें..."
+    }
+    className="w-full px-4 py-3 bg-white text-black rounded-md border border-gray-300 shadow-md focus:outline-none focus:ring-1 focus:ring-blue-500"
+  />
+  <button
+    onClick={() =>
+      navigate(`/hostels?city=${encodeURIComponent(searchQuery)}`)
+    }
+    className="bg-[#3A2C99] text-white px-5 py-3 rounded-md hover:bg-white hover:text-black transition"
+  >
+    🔍
+  </button>
+</div>
+
         </div>
       </section>
 
