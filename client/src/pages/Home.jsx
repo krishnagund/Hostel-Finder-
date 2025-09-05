@@ -8,6 +8,7 @@ import StatsSection from "../components/StatsSection";
 import CTASection from "../components/CTASection";
 import TopCities from "../components/TopCities";
 import { useLanguage } from "../context/LanguageContext";
+import { toast } from "react-toastify";
 import RenterInfo from "../components/RenterInfo";
 import TranslatedText from "../components/TranslatedText";
 import LanguageToggle from "../components/LanguageToggle";
@@ -221,7 +222,12 @@ const Home = () => {
     onChange={(e) => setSearchQuery(e.target.value)}
     onKeyDown={(e) => {
       if (e.key === "Enter") {
-        navigate(`/hostels?city=${encodeURIComponent(searchQuery)}`);
+        const q = (searchQuery || "").trim();
+        if (!q) {
+          toast.error("Please type a city name");
+          return;
+        }
+        navigate(`/hostels?city=${encodeURIComponent(q)}`);
       }
     }}
     placeholder={
@@ -232,9 +238,14 @@ const Home = () => {
     className="w-full px-4 py-3 bg-white text-black rounded-md border border-gray-300 shadow-md focus:outline-none focus:ring-1 focus:ring-blue-500"
   />
   <button
-    onClick={() =>
-      navigate(`/hostels?city=${encodeURIComponent(searchQuery)}`)
-    }
+    onClick={() => {
+      const q = (searchQuery || "").trim();
+      if (!q) {
+        toast.error("Please type a city name");
+        return;
+      }
+      navigate(`/hostels?city=${encodeURIComponent(q)}`);
+    }}
     className="bg-[#3A2C99] text-white px-5 py-3 rounded-md hover:bg-white hover:text-black transition"
   >
     🔍
@@ -336,27 +347,23 @@ const Home = () => {
                 {/* Info */}
                 <div className="p-5 text-left">
                   <p className="text-lg sm:text-xl font-semibold text-gray-800 mb-1">
-                    ₹{property.rent}
-                  </p>
-                  <p className="text-sm text-gray-500 mb-1">
-                    <TranslatedText text={property.propertyType} />
+                    ₹{new Intl.NumberFormat("en-IN").format(Number(property.rent) || 0)}
                   </p>
                   <p className="text-sm text-gray-700 mb-1">
-                    <TranslatedText text={property.address} />
+                    <TranslatedText text={(property.properttyType || property.propertyType) || "Other"} />
+                  </p>
+                  <p className="text-sm text-gray-700 mb-1">
+                    <TranslatedText text={property.city} />
                   </p>
                   <p className="text-sm text-gray-700 mb-1">
                     <RenterInfo text="Available from:" />{" "}
-                    <TranslatedText
-                      text={`${property.availabilityDay} ${property.availabilityMonth}`}
-                    />
+                    <TranslatedText text={`${property.availabilityDay} ${property.availabilityMonth}`} />
                   </p>
                   <p className="text-sm text-gray-700 mb-1">
-                    <RenterInfo text="Phone:" /> {property.phone}
+                    <RenterInfo text="Contact:" /> {property.phone}
                   </p>
                   <p className="text-sm text-gray-700 mb-1">
-                    <TranslatedText
-                      text={`${property.city}, ${property.state}`}
-                    />
+                    <TranslatedText text={`${property.city}, ${property.state}`} />
                   </p>
                   <div className="mt-4 text-right">
                     <button

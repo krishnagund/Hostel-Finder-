@@ -18,6 +18,39 @@ const PropertyDetailsModal = ({ property, onClose }) => {
   const [moveInDate, setMoveInDate] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  // Track if we pushed a history state for this modal
+  const [pushedState, setPushedState] = useState(false);
+
+  useEffect(() => {
+    if (!property) return;
+    // Push a new history state so Back closes the modal instead of leaving the page
+    window.history.pushState({ modalOpen: true }, "");
+    setPushedState(true);
+    const handlePop = () => {
+      // When user presses back, close the modal
+      onClose?.();
+    };
+    window.addEventListener("popstate", handlePop);
+    return () => {
+      window.removeEventListener("popstate", handlePop);
+      // If we pushed a state for the modal and the user closed via the close button,
+      // navigate back one step to restore the previous history without leaving the page
+      if (pushedState && window.history.state && window.history.state.modalOpen) {
+        // Clean up the extra state only if still present
+        window.history.back();
+      }
+    };
+  }, [property]);
+
+  const handleCloseClick = () => {
+    if (pushedState) {
+      // This will trigger popstate and call onClose
+      window.history.back();
+    } else {
+      onClose?.();
+    }
+  };
+
   // Don't render if no property
   if (!property) {
     return null;
@@ -79,7 +112,7 @@ const PropertyDetailsModal = ({ property, onClose }) => {
           {/* Close button */}
           <button
             className="absolute top-3 right-3 text-2xl font-bold text-gray-700 hover:text-red-500 z-10 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
-            onClick={onClose}
+            onClick={handleCloseClick}
             disabled={isSubmitting}
           >
             ✕

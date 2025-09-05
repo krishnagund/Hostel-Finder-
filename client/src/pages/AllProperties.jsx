@@ -267,17 +267,16 @@ const AllProperties = () => {
 
                   <div className="p-4 sm:p-5 text-left">
                     <p className="text-lg sm:text-xl font-semibold text-gray-800 mb-1">
-                      ₹{property.rent}
-                    </p>
-                    <p className="text-xs sm:text-sm text-gray-500 mb-1">
-                      {property.properttyType}
+                      ₹{new Intl.NumberFormat("en-IN").format(Number(property.rent) || 0)}
                     </p>
                     <p className="text-xs sm:text-sm text-gray-700 mb-1">
-                      {property.address}
+                      {(property.properttyType || property.propertyType) || "Other"}
                     </p>
                     <p className="text-xs sm:text-sm text-gray-700 mb-1">
-                      Available from: {property.availabilityDay}{" "}
-                      {property.availabilityMonth}
+                      {property.city}
+                    </p>
+                    <p className="text-xs sm:text-sm text-gray-700 mb-1">
+                      Available from: {property.availabilityDay} {property.availabilityMonth}
                     </p>
                     <p className="text-xs sm:text-sm text-gray-700 mb-1">
                       Contact: {property.phone}

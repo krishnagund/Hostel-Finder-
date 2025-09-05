@@ -211,7 +211,6 @@ const onSubmitHandler = async (e) => {
 
     const { data } = await axios.post(url, payload);
 
-    console.log("Login/Register Response:", data); // debug here
 
    if (data.success) {
   if (state === "Sign Up") {

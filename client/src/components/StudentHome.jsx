@@ -12,6 +12,7 @@ import TranslatedText from "./TranslatedText";
 import LanguageToggle from "./LanguageToggle";
 import { FaUser } from "react-icons/fa"; // ✅ Import profile icon
 import { Link } from "react-router-dom";
+import { toast } from "react-toastify";
 
 const StudentHome = () => {
   
@@ -21,10 +22,13 @@ const StudentHome = () => {
   const [favorites, setFavorites] = useState([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedProperty, setSelectedProperty] = useState(null);
+  const [unreadCount, setUnreadCount] = useState(0);
 
   const { language, setLanguage } = useLanguage();
   const [profileOpen, setProfileOpen] = useState(false); 
+  const [mobileProfileOpen, setMobileProfileOpen] = useState(false);
   const profileRef = useRef(null);
+  const mobileProfileRef = useRef(null);
   const [showLoginModal, setShowLoginModal] = useState(false);
   const [authState, setAuthState] = useState("Login");
 
@@ -32,6 +36,9 @@ const StudentHome = () => {
   const handleClickOutside = (event) => {
     if (profileRef.current && !profileRef.current.contains(event.target)) {
       setProfileOpen(false);
+    }
+    if (mobileProfileRef.current && !mobileProfileRef.current.contains(event.target)) {
+      setMobileProfileOpen(false);
     }
   };
 
@@ -59,6 +66,26 @@ const StudentHome = () => {
   }
 };
 
+const fetchUnreadCount = async () => {
+  if (!isLoggedin) return;
+  try {
+    const res = await fetch(`${backendurl}/api/messages/unread-count`, {
+      credentials: "include",
+    });
+    const data = await res.json();
+    if (data.success) {
+      setUnreadCount(data.unreadCount);
+    }
+  } catch (err) {
+    console.error("Error fetching unread count", err);
+  }
+};
+
+// Function to update unread count when messages are read
+const updateUnreadCount = (newCount) => {
+  setUnreadCount(newCount);
+};
+
   const fetchProperties = async () => {
     try {
       const response = await fetch(`${backendurl}/api/property/all-properties`, {
@@ -74,6 +101,7 @@ const StudentHome = () => {
   useEffect(() => {
     fetchProperties();
     fetchFavorites();
+    fetchUnreadCount();
   }, [isLoggedin]);
 
   const handleFavoriteToggle = async (propertyId) => {
@@ -102,7 +130,7 @@ const StudentHome = () => {
   return (
     <div className="bg-gray-50 min-h-screen font-sans">
       {/* ===== Navbar ===== */}
-      <nav className="flex flex-wrap justify-between items-center px-4 sm:px-8 py-4 sm:py-6 shadow-md bg-white">
+      <nav className="flex justify-between items-center px-4 sm:px-8 py-4 sm:py-6 shadow-md bg-white">
         {/* Logo */}
         <div className="flex items-center space-x-2 text-2xl sm:text-3xl font-bold">
           <img
@@ -118,31 +146,31 @@ const StudentHome = () => {
           </span>
         </div>
 
-        {/* Navbar Right Section */}
-        <div className="flex items-center gap-3">
-          {/* Language Toggle (always visible) */}
+        {/* Desktop Navbar Right Section */}
+        <div className="hidden md:flex items-center gap-3">
+          {/* Language Toggle */}
           <LanguageToggle />
 
           {/* Divider */}
-          <div className="hidden sm:block h-7 border-l border-[#3A2C99] mx-2" />
+          <div className="h-7 border-l border-[#3A2C99] mx-2" />
 
-          {/* ✅ Profile Dropdown Toggle */}
+          {/* Profile Dropdown Toggle */}
           <div className="relative" ref={profileRef}>
             <button
               onClick={() => setProfileOpen(!profileOpen)}
-              className="flex items-center justify-center w-10 h-10 rounded-full bg-[#3A2C99] text-white hover:bg-white hover:text-[#3A2C99] transition"
+              className="flex items-center justify-center w-10 h-10 rounded-full bg-[#3A2C99] text-white hover:bg-white hover:text-[#3A2C99] transition z-40"
             >
               <FaUser />
             </button>
 
             {profileOpen && (
-              <div className="absolute right-0 mt-2 w-48 bg-white shadow-md rounded-md flex flex-col z-30">
+              <div className="absolute right-0 mt-2 w-48 bg-white shadow-lg rounded-md flex flex-col z-50 border border-gray-200">
                 <button
                   onClick={() => {
                     navigate("/favorites");
                     setProfileOpen(false);
                   }}
-                  className="px-4 py-2 hover:bg-gray-100 text-left"
+                  className="px-4 py-2 hover:bg-gray-100 text-left transition-colors"
                 >
                   <RenterInfo text="My Faves" />
                 </button>
@@ -151,7 +179,7 @@ const StudentHome = () => {
                     navigate("/saved-searches");
                     setProfileOpen(false);
                   }}
-                  className="px-4 py-2 hover:bg-gray-100 text-left"
+                  className="px-4 py-2 hover:bg-gray-100 text-left transition-colors"
                 >
                   <RenterInfo text="Saved Searches" />
                 </button>
@@ -160,7 +188,7 @@ const StudentHome = () => {
                     navigate("/student-profile");
                     setProfileOpen(false);
                   }}
-                  className="px-4 py-2 hover:bg-gray-100 text-left"
+                  className="px-4 py-2 hover:bg-gray-100 text-left transition-colors"
                 >
                   <RenterInfo text="Profile" />
                 </button>
@@ -169,10 +197,77 @@ const StudentHome = () => {
                     navigate("/inbox");
                     setProfileOpen(false);
                   }}
-                  className="px-4 py-2 hover:bg-gray-100 text-left flex justify-between items-center"
+                  className="px-4 py-2 hover:bg-gray-100 text-left flex justify-between items-center transition-colors"
                 >
                   <RenterInfo text="Inbox" />
-            
+                  {unreadCount > 0 && (
+                    <span className="bg-red-500 text-white text-xs px-2 py-0.5 rounded-full">
+                      {unreadCount}
+                    </span>
+                  )}
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Mobile Navbar Right Section */}
+        <div className="md:hidden flex items-center gap-2">
+          <div className="relative" ref={mobileProfileRef}>
+            <button
+              onClick={() => setMobileProfileOpen(!mobileProfileOpen)}
+              className="flex items-center justify-center w-8 h-8 rounded-full bg-[#3A2C99] text-white hover:bg-white hover:text-[#3A2C99] transition z-40"
+            >
+              <FaUser size={16} />
+            </button>
+
+            {mobileProfileOpen && (
+              <div className="absolute right-0 mt-2 w-48 bg-white shadow-lg rounded-md flex flex-col z-50 border border-gray-200">
+                {/* Language Toggle in Mobile Dropdown */}
+                <div className="px-4 py-2 border-b border-gray-200">
+                  <LanguageToggle />
+                </div>
+                
+                <button
+                  onClick={() => {
+                    navigate("/favorites");
+                    setMobileProfileOpen(false);
+                  }}
+                  className="px-4 py-2 hover:bg-gray-100 text-left transition-colors"
+                >
+                  <RenterInfo text="My Faves" />
+                </button>
+                <button
+                  onClick={() => {
+                    navigate("/saved-searches");
+                    setMobileProfileOpen(false);
+                  }}
+                  className="px-4 py-2 hover:bg-gray-100 text-left transition-colors"
+                >
+                  <RenterInfo text="Saved Searches" />
+                </button>
+                <button
+                  onClick={() => {
+                    navigate("/student-profile");
+                    setMobileProfileOpen(false);
+                  }}
+                  className="px-4 py-2 hover:bg-gray-100 text-left transition-colors"
+                >
+                  <RenterInfo text="Profile" />
+                </button>
+                <button
+                  onClick={() => {
+                    navigate("/inbox");
+                    setMobileProfileOpen(false);
+                  }}
+                  className="px-4 py-2 hover:bg-gray-100 text-left flex justify-between items-center transition-colors"
+                >
+                  <RenterInfo text="Inbox" />
+                  {unreadCount > 0 && (
+                    <span className="bg-red-500 text-white text-xs px-2 py-0.5 rounded-full">
+                      {unreadCount}
+                    </span>
+                  )}
                 </button>
               </div>
             )}
@@ -201,12 +296,27 @@ const StudentHome = () => {
               placeholder="Search city or college..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  const q = (searchQuery || "").trim();
+                  if (!q) {
+                    toast.error("Please type a city name");
+                    return;
+                  }
+                  navigate(`/hostels?city=${encodeURIComponent(q)}`);
+                }
+              }}
               className="w-full px-4 sm:px-6 py-2 sm:py-3 bg-white text-black rounded-md border border-gray-300 shadow-md focus:outline-none focus:ring-1 focus:ring-blue-500"
             />
             <button
-              onClick={() =>
-                navigate(`/hostels?city=${encodeURIComponent(searchQuery)}`)
-              }
+              onClick={() => {
+                const q = (searchQuery || "").trim();
+                if (!q) {
+                  toast.error("Please type a city name");
+                  return;
+                }
+                navigate(`/hostels?city=${encodeURIComponent(q)}`);
+              }}
               className="bg-[#3A2C99] text-white px-4 sm:px-5 py-2 sm:py-3 rounded-md hover:bg-white hover:text-black transition cursor-pointer"
             >
               🔍

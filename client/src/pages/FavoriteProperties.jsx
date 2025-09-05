@@ -165,25 +165,23 @@ const FavoriteProperties = () => {
                 )}
                 <div className="p-5 text-left">
                   <p className="text-xl font-semibold text-gray-800 mb-1">
-                    ₹<TranslatedText text={property.rent} />
-                  </p>
-                  <p className="text-sm text-gray-500 mb-1">
-                    <TranslatedText text={property.properttyType} />
+                    ₹{new Intl.NumberFormat("en-IN").format(Number(property.rent) || 0)}
                   </p>
                   <p className="text-sm text-gray-700 mb-1">
-                    <TranslatedText text={property.address} />
+                    <TranslatedText text={(property.properttyType || property.propertyType) || "Other"} />
+                  </p>
+                  <p className="text-sm text-gray-700 mb-1">
+                    <TranslatedText text={property.city} />
                   </p>
                   <p className="text-sm text-gray-700 mb-1">
                     <RenterInfo text="Available from:" />{" "}
-                    <TranslatedText text={property.availabilityDay} />{" "}
-                    <TranslatedText text={property.availabilityMonth} />
+                    <TranslatedText text={`${property.availabilityDay} ${property.availabilityMonth}`} />
                   </p>
                   <p className="text-sm text-gray-700 mb-1">
-                    <RenterInfo text="Phone:" /> {property.phone}
+                    <RenterInfo text="Contact:" /> {property.phone}
                   </p>
                   <p className="text-sm text-gray-700 mb-1">
-                    <TranslatedText text={property.city} />,{" "}
-                    <TranslatedText text={property.state} />
+                    <TranslatedText text={`${property.city}, ${property.state}`} />
                   </p>
                 </div>
                 <button

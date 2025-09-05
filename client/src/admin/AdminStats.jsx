@@ -12,7 +12,6 @@ useEffect(() => {
   const fetchStats = async () => {
     try {
       const res = await api.get(backendurl+"/api/admin/stats");
-      console.log("Full API Response:", res.data);
       setStats(res.data.stats);  // 👈 save only the stats object
     } catch (err) {
       console.error("Error fetching stats:", err.response?.data || err.message);

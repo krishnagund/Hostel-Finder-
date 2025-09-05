@@ -32,6 +32,8 @@ export const sendMessage = async (req, res) => {
       content: message,
     });
 
+    // No email or SMS notifications - removed as requested
+
     return res.status(201).json({
       success: true,
       message: "Message sent successfully",
@@ -60,6 +62,22 @@ export const getMyMessages = async (req, res) => {
   }
 };
 
+export const getUnreadCount = async (req, res) => {
+  try {
+    const userId = req.userId;
+    
+    const unreadCount = await Message.countDocuments({ 
+      receiver: userId, 
+      read: false 
+    });
+
+    return res.json({ success: true, unreadCount });
+  } catch (err) {
+    console.error("getUnreadCount error:", err);
+    return res.status(500).json({ success: false, message: "Server error" });
+  }
+};
+
 
 export const markMessagesRead = async (req, res) => {
   try {
@@ -67,10 +85,21 @@ export const markMessagesRead = async (req, res) => {
     const userId = req.userId;
 
     if (!email) return res.status(400).json({ success: false, message: "Email required" });
+    
+    // Normalize the email to match how it's stored in the database
+    const normalizedEmail = email.trim().toLowerCase();
+    
+    // Try to find the sender by email to get the correct email format
+    const sender = await userModel.findOne({ email: normalizedEmail }).select("email");
+    const senderEmail = sender ? sender.email : normalizedEmail;
+    
+    const result = await Message.updateMany({ receiver: userId, email: senderEmail }, { read: true });
 
-    await Message.updateMany({ receiver: userId, email }, { read: true });
-
-    return res.json({ success: true, message: "Messages marked as read" });
+    return res.json({ 
+      success: true, 
+      message: "Messages marked as read",
+      modifiedCount: result.modifiedCount
+    });
   } catch (err) {
     console.error("markMessagesRead error:", err);
     return res.status(500).json({ success: false, message: "Server error" });
@@ -104,15 +133,33 @@ export const logMessage = async (req, res) => {
     const owner = await userModel.findById(req.userId);
     if (!owner) return res.status(404).json({ success: false, message: "Owner not found" });
 
+    if (!propertyId) {
+      return res.status(400).json({ success: false, message: "propertyId is required" });
+    }
+    if (!receiverId) {
+      return res.status(400).json({ success: false, message: "receiverId is required" });
+    }
+
+    // Validate that property exists and belongs to this owner
+    const property = await Property.findById(propertyId).select("user heading");
+    if (!property) {
+      return res.status(404).json({ success: false, message: "Property not found" });
+    }
+    if (String(property.user) !== String(owner._id)) {
+      return res.status(403).json({ success: false, message: "You do not own this property" });
+    }
+
     const newLog = new Message({
-      property: propertyId,
-      sender: owner._id,       
+      property: property._id,
+      sender: owner._id,
       receiver: receiverId,
-      medium,                  
-      content,                
+      medium,
+      content,
     });
 
     await newLog.save();
+
+    // No email or SMS notifications - removed as requested
 
     return res.json({ success: true, message: "Interaction logged successfully" });
   } catch (err) {
@@ -124,19 +171,36 @@ export const logMessage = async (req, res) => {
 
 export const markas = async (req, res) => {
   try {
-    const { propertyId } = req.body;
+    const { email } = req.body;
     const userId = req.userId;
 
-    if (!propertyId) {
-      return res.status(400).json({ success: false, message: "Property ID required" });
+    if (!email) {
+      return res.status(400).json({ success: false, message: "Email required" });
     }
-
-    await Message.updateMany(
-      { receiver: userId, property: propertyId },
+    
+    // Find the sender by email to get their ID
+    const normalizedEmail = email.trim().toLowerCase();
+    const sender = await userModel.findOne({ email: normalizedEmail }).select("_id email");
+    
+    if (!sender) {
+      return res.json({ 
+        success: false, 
+        message: "Sender not found",
+        modifiedCount: 0
+      });
+    }
+    
+    // Try updating by sender ID instead of email
+    const result = await Message.updateMany(
+      { receiver: userId, sender: sender._id },
       { read: true }
     );
 
-    return res.json({ success: true, message: "Messages marked as read" });
+    return res.json({ 
+      success: true, 
+      message: "Messages marked as read",
+      modifiedCount: result.modifiedCount
+    });
   } catch (err) {
     console.error("markMessagesRead error:", err);
     return res.status(500).json({ success: false, message: "Server error" });

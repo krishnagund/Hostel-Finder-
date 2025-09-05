@@ -86,7 +86,7 @@ const ListingsTab = ({ properties }) => {
                 <TranslatedText text={property.email} />
               </p>
 
-              {/* ✅ Room Images */}
+              {/* Room Images */}
               {property.roomImages && property.roomImages.length > 0 && (
                 <div className="grid grid-cols-2 gap-2 mt-4">
                   {property.roomImages.map((img, index) => (

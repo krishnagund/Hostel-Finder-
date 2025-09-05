@@ -24,10 +24,7 @@ const HostelOwnerHome = () => {
       const data = await response.json();
       setProperties(data.properties);
     } catch (err) {
-      console.error(
-        <RenterInfo text="Failed to fetch properties" />,
-        err
-      );
+      console.error("Failed to fetch properties:", err);
     }
   };
 
@@ -72,7 +69,7 @@ const HostelOwnerHome = () => {
   };
 
   return (
-    <div>
+    <div className="min-h-screen bg-gray-50">
       <OwnerNavbar
         setActiveTab={(tab) => {
           setActiveTab(tab);
@@ -85,7 +82,9 @@ const HostelOwnerHome = () => {
         }}
         setSelectedPropertyType={setSelectedPropertyType}
       />
-      <div className="p-6">{renderTabContent()}</div>
+      <div className="p-4 sm:p-6 max-w-7xl mx-auto">
+        {renderTabContent()}
+      </div>
     </div>
   );
 };

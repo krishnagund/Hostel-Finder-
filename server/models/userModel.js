@@ -26,6 +26,25 @@ const userSchema = new mongoose.Schema({ // constructer for creating a schema fo
     ref: "Property", 
   }
 ],
+
+  // Student extended profile
+  studentProfile: {
+    college: { type: String, default: "" },
+    course: { type: String, default: "" },
+    year: { type: String, default: "" },
+    gender: { type: String, default: "" },
+    dateOfBirth: { type: Date },
+    address: { type: String, default: "" },
+    city: { type: String, default: "" },
+    state: { type: String, default: "" },
+    pincode: { type: String, default: "" },
+    guardianName: { type: String, default: "" },
+    guardianPhone: { type: String, default: "" },
+    whatsappNumber: { type: String, default: "" },
+    budget: { type: Number },
+    roomTypePreference: { type: String, default: "" },
+    about: { type: String, default: "" },
+  },
 })
 
 

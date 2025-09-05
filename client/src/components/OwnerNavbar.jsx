@@ -1,4 +1,4 @@
-import { useContext, useState } from "react";
+import { useContext, useState, useEffect } from "react";
 import { assets } from "../assets/assets";
 import { AppContext } from "../context/Appcontext";
 import { useNavigate } from "react-router-dom";
@@ -9,11 +9,32 @@ import LanguageToggle from "./LanguageToggle";
 import { Menu, X } from "lucide-react";
 
 const OwnerNavbar = ({ setActiveTab, activeTab, setShowListingForm, setSelectedPropertyType }) => {
-  const { userData, logout } = useContext(AppContext);
+  const { userData, logout, backendurl } = useContext(AppContext);
   const { language, setLanguage } = useLanguage();
   const navigate = useNavigate();
 
   const [menuOpen, setMenuOpen] = useState(false);
+  const [unreadCount, setUnreadCount] = useState(0);
+
+  useEffect(() => {
+    if (!userData) return;
+    
+    const fetchUnreadCount = async () => {
+      try {
+        const res = await fetch(`${backendurl}/api/messages/unread-count`, {
+          credentials: "include",
+        });
+        const data = await res.json();
+        if (data.success) {
+          setUnreadCount(data.unreadCount);
+        }
+      } catch (err) {
+        console.error("Error fetching unread count", err);
+      }
+    };
+
+    fetchUnreadCount();
+  }, [userData, backendurl]);
 
   if (!userData) {
     return (
@@ -25,10 +46,10 @@ const OwnerNavbar = ({ setActiveTab, activeTab, setShowListingForm, setSelectedP
 
   return (
     <>
-      {/* ✅ Top Navigation */}
-      <nav className="bg-white shadow px-4 sm:px-6 py-4 flex justify-between items-center">
+      {/* Top Navigation - Same style as Home page */}
+      <nav className="flex justify-between items-center px-6 sm:px-8 py-4 shadow-md bg-white relative">
         {/* Logo */}
-        <div className="flex items-center space-x-2 text-2xl sm:text-3xl font-bold">
+        <div className="flex items-center space-x-2 text-2xl sm:text-3xl font-bold cursor-pointer">
           <img
             src={assets.logo1}
             alt="Hostel Finder Logo"
@@ -39,19 +60,19 @@ const OwnerNavbar = ({ setActiveTab, activeTab, setShowListingForm, setSelectedP
         </div>
 
         {/* Desktop Actions */}
-        <div className="hidden md:flex items-center gap-4">
+        <div className="hidden md:flex items-center gap-3">
           <LanguageToggle />
+          <div className="h-6 border-l border-[#3A2C99] mx-2"></div>
           <button
             onClick={() => {
               setShowListingForm(true);
               setSelectedPropertyType(null);
             }}
-            className="text-white bg-[#3A2C99] px-4 py-2 rounded-md hover:bg-white hover:text-black transition cursor-pointer"
+            className="text-white bg-[#3A2C99] px-4 py-2 rounded-md hover:bg-white hover:text-black transition"
           >
-            <RenterInfo text="List a Property" />
+            <RenterInfo text="+ List Property" />
           </button>
-
-          <div className="ml-4 flex items-center gap-2">
+          <div className="flex items-center gap-2">
             <span className="text-base font-medium">
               <TranslatedText text={userData.name} />
             </span>
@@ -64,45 +85,46 @@ const OwnerNavbar = ({ setActiveTab, activeTab, setShowListingForm, setSelectedP
           </div>
         </div>
 
-        {/* Mobile Hamburger */}
-        <button
-          className="md:hidden text-gray-700"
-          onClick={() => setMenuOpen(!menuOpen)}
-        >
-          {menuOpen ? <X size={26} /> : <Menu size={26} />}
-        </button>
+        {/* Mobile Menu Toggle */}
+        <div className="md:hidden">
+          <button
+            onClick={() => setMenuOpen(!menuOpen)}
+            className="text-2xl text-[#3A2C99]"
+          >
+            {menuOpen ? <X size={24} /> : <Menu size={24} />}
+          </button>
+        </div>
+
+        {/* Mobile Dropdown */}
+        {menuOpen && (
+          <div className="absolute top-full right-0 bg-white shadow-md flex flex-col gap-3 px-6 py-4 w-48 z-20 md:hidden">
+            <LanguageToggle />
+            <button
+              onClick={() => {
+                setShowListingForm(true);
+                setSelectedPropertyType(null);
+                setMenuOpen(false);
+              }}
+              className="text-white bg-[#3A2C99] px-4 py-2 rounded-md hover:bg-white hover:text-black transition"
+            >
+              <RenterInfo text="+ List Property" />
+            </button>
+            <div className="flex flex-col items-start gap-2">
+              <span className="text-base font-medium">
+                <TranslatedText text={userData.name} />
+              </span>
+              <button
+                className="text-red-500 text-sm cursor-pointer"
+                onClick={logout}
+              >
+                (<RenterInfo text="Sign Out" />)
+              </button>
+            </div>
+          </div>
+        )}
       </nav>
 
-      {/* ✅ Mobile Dropdown Menu */}
-      {menuOpen && (
-        <div className="md:hidden bg-white border-t shadow px-4 py-3 space-y-4">
-          <LanguageToggle />
-          <button
-            onClick={() => {
-              setShowListingForm(true);
-              setSelectedPropertyType(null);
-              setMenuOpen(false);
-            }}
-            className="block w-full text-white bg-[#3A2C99] px-4 py-2 rounded-md hover:bg-white hover:text-black transition"
-          >
-            <RenterInfo text="List a Property" />
-          </button>
-
-          <div className="flex flex-col items-start gap-2">
-            <span className="text-base font-medium">
-              <TranslatedText text={userData.name} />
-            </span>
-            <button
-              className="text-red-500 text-sm cursor-pointer"
-              onClick={logout}
-            >
-              (<RenterInfo text="Sign Out" />)
-            </button>
-          </div>
-        </div>
-      )}
-
-      {/* ✅ Tab Buttons Row */}
+      {/* Tab Navigation - Same style as Home page */}
       <div className="bg-gray-100 px-4 sm:px-6 py-2 flex gap-6 border-b overflow-x-auto scrollbar-hide">
         <button
           onClick={() => setActiveTab("listings")}
@@ -112,17 +134,22 @@ const OwnerNavbar = ({ setActiveTab, activeTab, setShowListingForm, setSelectedP
               : "text-gray-600"
           }`}
         >
-          <RenterInfo text="Listings" />
+          <RenterInfo text="My Listings" />
         </button>
         <button
           onClick={() => setActiveTab("inbox")}
-          className={`whitespace-nowrap text-sm font-medium ${
+          className={`whitespace-nowrap text-sm font-medium flex items-center gap-2 ${
             activeTab === "inbox"
               ? "text-green-700 border-b-2 border-green-700 pb-1"
               : "text-gray-600"
           }`}
         >
-          <RenterInfo text="Inbox" />
+          <RenterInfo text="Messages" />
+          {unreadCount > 0 && (
+            <span className="bg-red-500 text-white text-xs px-2 py-0.5 rounded-full">
+              {unreadCount}
+            </span>
+          )}
         </button>
         <button
           onClick={() => setActiveTab("forms")}

@@ -437,10 +437,10 @@ const HostelSearchPage = () => {
                     <p className="text-lg md:text-xl font-semibold text-gray-800 mb-1">
                       ₹{formatINR(property.rent)}
                     </p>
-                    <p className="text-sm text-gray-500 mb-1">
-                      {property.properttyType || "Other"}
+                    <p className="text-sm text-gray-700 mb-1">
+                      {(property.properttyType || property.propertyType) || "Other"}
                     </p>
-                    <p className="text-sm text-gray-700 mb-1">{property.address}</p>
+                    <p className="text-sm text-gray-700 mb-1">{property.city}</p>
                     <p className="text-sm text-gray-700 mb-1">
                       Available from: {property.availabilityDay} {property.availabilityMonth}
                     </p>
