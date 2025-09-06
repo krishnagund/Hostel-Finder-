@@ -46,8 +46,8 @@ const OwnerNavbar = ({ setActiveTab, activeTab, setShowListingForm, setSelectedP
 
   return (
     <>
-      {/* Top Navigation - Same style as Home page */}
-      <nav className="flex justify-between items-center px-6 sm:px-8 py-4 shadow-md bg-white relative">
+      {/* Top Navigation - Integrated with page */}
+      <nav className="flex justify-between items-center px-6 sm:px-8 py-4 bg-gray-50 relative">
         {/* Logo */}
         <div className="flex items-center space-x-2 text-2xl sm:text-3xl font-bold cursor-pointer">
           <img
@@ -124,8 +124,8 @@ const OwnerNavbar = ({ setActiveTab, activeTab, setShowListingForm, setSelectedP
         )}
       </nav>
 
-      {/* Tab Navigation - Same style as Home page */}
-      <div className="bg-gray-100 px-4 sm:px-6 py-2 flex gap-6 border-b overflow-x-auto scrollbar-hide">
+      {/* Tab Navigation - Integrated with page */}
+      <div className="bg-gray-50 px-4 sm:px-6 py-3 flex gap-6 overflow-x-auto scrollbar-hide border-b border-gray-200">
         <button
           onClick={() => setActiveTab("listings")}
           className={`whitespace-nowrap text-sm font-medium ${

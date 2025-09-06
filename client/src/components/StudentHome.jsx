@@ -10,6 +10,7 @@ import RenterInfo from "./RenterInfo";
 import { useLanguage } from "../context/LanguageContext";
 import TranslatedText from "./TranslatedText";
 import LanguageToggle from "./LanguageToggle";
+import AvailabilityBadge from "./AvailabilityBadge";
 import { FaUser } from "react-icons/fa"; // ✅ Import profile icon
 import { Link } from "react-router-dom";
 import { toast } from "react-toastify";
@@ -130,7 +131,7 @@ const updateUnreadCount = (newCount) => {
   return (
     <div className="bg-gray-50 min-h-screen font-sans">
       {/* ===== Navbar ===== */}
-      <nav className="flex justify-between items-center px-4 sm:px-8 py-4 sm:py-6 shadow-md bg-white">
+      <nav className="flex justify-between items-center px-4 sm:px-8 py-4 sm:py-6 bg-gray-50">
         {/* Logo */}
         <div className="flex items-center space-x-2 text-2xl sm:text-3xl font-bold">
           <img
@@ -194,7 +195,7 @@ const updateUnreadCount = (newCount) => {
                 </button>
                 <button
                   onClick={() => {
-                    navigate("/inbox");
+                    navigate("/student-profile?tab=inbox");
                     setProfileOpen(false);
                   }}
                   className="px-4 py-2 hover:bg-gray-100 text-left flex justify-between items-center transition-colors"
@@ -257,7 +258,7 @@ const updateUnreadCount = (newCount) => {
                 </button>
                 <button
                   onClick={() => {
-                    navigate("/inbox");
+                    navigate("/student-profile?tab=inbox");
                     setMobileProfileOpen(false);
                   }}
                   className="px-4 py-2 hover:bg-gray-100 text-left flex justify-between items-center transition-colors"
@@ -423,11 +424,14 @@ const updateUnreadCount = (newCount) => {
                   <p className="text-xs sm:text-sm text-gray-700 mb-1">
                     <TranslatedText text={property.address} />
                   </p>
-                  <p className="text-xs sm:text-sm text-gray-700 mb-1">
-                    <RenterInfo text="Available from:" />{" "}
-                    <TranslatedText text={property.availabilityDay} />{" "}
-                    <TranslatedText text={property.availabilityMonth} />
-                  </p>
+                  <div className="flex items-center justify-between mb-2">
+                    <p className="text-xs sm:text-sm text-gray-700">
+                      <RenterInfo text="Available from:" />{" "}
+                      <TranslatedText text={property.availabilityDay} />{" "}
+                      <TranslatedText text={property.availabilityMonth} />
+                    </p>
+                    <AvailabilityBadge isAvailable={property.isAvailable} />
+                  </div>
                   <p className="text-xs sm:text-sm text-gray-700 mb-1">
                     <RenterInfo text="Contact:" />{" "}
                     <TranslatedText text={property.phone} />

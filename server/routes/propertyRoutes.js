@@ -3,7 +3,10 @@ import {
   createProperty,
   getUserProperties,
   getAllProperties,
-  getPropertiesByCity
+  getPropertiesByCity,
+  updateProperty,
+  deleteProperty,
+  toggleAvailability
 } from '../controllers/propertyController.js';
 
 import userAuth from '../middleware/userAuth.js';
@@ -27,9 +30,13 @@ const upload = multer({ storage });
 
 router.post('/add', userAuth, upload.array('roomImages', 10), createProperty);
 
-
 router.get('/my-properties', userAuth, getUserProperties);
 router.get('/all-properties', getAllProperties);
 router.get('/search/:city', getPropertiesByCity);
+
+// Property management routes
+router.put('/update/:id', userAuth, updateProperty);
+router.delete('/delete/:id', userAuth, deleteProperty);
+router.patch('/toggle-availability/:id', userAuth, toggleAvailability);
 
 export default router;

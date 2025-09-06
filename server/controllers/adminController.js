@@ -73,8 +73,48 @@ export const toggleBlockUser = async (req, res) => {
 
 export const deleteUser = async (req, res) => {
   try {
-    await userModel.findByIdAndDelete(req.params.id);
-    return res.json({ success: true, message: "User deleted" });
+    const userId = req.params.id;
+    
+    // Import models for cascading delete
+    const Message = (await import('../models/messageModel.js')).default;
+    
+    // Get user to check their role
+    const user = await userModel.findById(userId);
+    if (!user) {
+      return res.json({ success: false, message: "User not found" });
+    }
+    
+    // If user is an owner, delete all their properties and associated messages
+    if (user.role === 'owner') {
+      // Find all properties owned by this user
+      const userProperties = await propertyModel.find({ user: userId });
+      const propertyIds = userProperties.map(prop => prop._id);
+      
+      // Delete all messages associated with these properties
+      await Message.deleteMany({ property: { $in: propertyIds } });
+      
+      // Delete all properties owned by this user
+      await propertyModel.deleteMany({ user: userId });
+    }
+    
+    // Delete all messages where this user is sender or receiver
+    await Message.deleteMany({ 
+      $or: [
+        { sender: userId },
+        { receiver: userId }
+      ]
+    });
+    
+    // Remove this user from all favorites lists
+    await userModel.updateMany(
+      { favorites: userId },
+      { $pull: { favorites: userId } }
+    );
+    
+    // Finally, delete the user
+    await userModel.findByIdAndDelete(userId);
+    
+    return res.json({ success: true, message: "User and all associated data deleted" });
   } catch (e) {
     return res.json({ success: false, message: e.message });
   }
@@ -112,8 +152,18 @@ export const rejectProperty = async (req, res) => {
 
 export const deleteProperty = async (req, res) => {
   try {
-    await propertyModel.findByIdAndDelete(req.params.id);
-    return res.json({ success: true, message: "Property deleted" });
+    const propertyId = req.params.id;
+    
+    // Import Message model for cascading delete
+    const Message = (await import('../models/messageModel.js')).default;
+    
+    // Delete all messages associated with this property
+    await Message.deleteMany({ property: propertyId });
+    
+    // Delete the property
+    await propertyModel.findByIdAndDelete(propertyId);
+    
+    return res.json({ success: true, message: "Property and associated messages deleted" });
   } catch (e) {
     return res.json({ success: false, message: e.message });
   }

@@ -5,6 +5,7 @@ import { useNavigate } from "react-router-dom";
 import LoginModal from "./LoginModal";
 import PropertyDetailsModal from "./PropertyDetailsModal";
 import { FaUser, FaBars } from "react-icons/fa"; // ✅ for profile + hamburger
+import AvailabilityBadge from "../components/AvailabilityBadge";
 
 const AllProperties = () => {
   const navigate = useNavigate();
@@ -82,7 +83,7 @@ const AllProperties = () => {
   return (
     <div className="bg-gray-50 min-h-screen font-sans">
       {/* ===== Navbar ===== */}
-      <nav className="flex justify-between items-center px-4 sm:px-8 py-4 shadow-md bg-white relative">
+      <nav className="flex justify-between items-center px-4 sm:px-8 py-4 bg-gray-50 relative">
         {/* Logo */}
         <div className="flex items-center space-x-2 text-2xl sm:text-3xl font-bold">
           <img
@@ -127,7 +128,7 @@ const AllProperties = () => {
                   </button>
                   <button
                     onClick={() => {
-                      navigate("/inbox");
+                      navigate("/student-profile?tab=inbox");
                       setProfileOpen(false);
                     }}
                     className="px-4 py-2 hover:bg-gray-100 text-left"
@@ -275,9 +276,12 @@ const AllProperties = () => {
                     <p className="text-xs sm:text-sm text-gray-700 mb-1">
                       {property.city}
                     </p>
-                    <p className="text-xs sm:text-sm text-gray-700 mb-1">
-                      Available from: {property.availabilityDay} {property.availabilityMonth}
-                    </p>
+                    <div className="flex items-center justify-between mb-2">
+                      <p className="text-xs sm:text-sm text-gray-700">
+                        Available from: {property.availabilityDay} {property.availabilityMonth}
+                      </p>
+                      <AvailabilityBadge isAvailable={property.isAvailable} />
+                    </div>
                     <p className="text-xs sm:text-sm text-gray-700 mb-1">
                       Contact: {property.phone}
                     </p>

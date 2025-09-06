@@ -6,6 +6,7 @@ import { assets } from "../assets/assets";
 import LoginModal from "./LoginModal";
 import PropertyDetailsModal from "./PropertyDetailsModal";
 import { Menu, X, User, SlidersHorizontal, Map, List } from "lucide-react";
+import AvailabilityBadge from "../components/AvailabilityBadge";
 
 // Utility
 const formatINR = (n) => (Number.isFinite(+n) ? new Intl.NumberFormat("en-IN").format(+n) : n);
@@ -253,7 +254,7 @@ const HostelSearchPage = () => {
   return (
     <div className="bg-gray-50 min-h-screen font-sans relative">
       {/* Navbar */}
-      <nav className="flex justify-between items-center px-6 md:px-12 py-4 shadow-md bg-white relative z-50">
+      <nav className="flex justify-between items-center px-6 md:px-12 py-4 bg-gray-50 relative z-50">
         {/* Logo */}
         <div
           onClick={() => navigate("/")}
@@ -290,7 +291,7 @@ const HostelSearchPage = () => {
                   </button>
                   <button
                     onClick={() => {
-                      navigate("/inbox");
+                      navigate("/student-profile?tab=inbox");
                       setMenuOpen(false);
                     }}
                     className="block w-full text-left px-4 py-2 hover:bg-gray-100"
@@ -423,7 +424,7 @@ const HostelSearchPage = () => {
                     alt="Property"
                     className="w-full h-56 object-cover"
                   />
-                  <div className="absolute top-4 right-4 bg-white px-3 py-1 text-xs font-medium text-gray-600 rounded shadow">
+                  <div className="absolute top-4 left-4 bg-white px-3 py-1 text-xs font-medium text-gray-600 rounded shadow">
                     {property.createdAt
                       ? `Posted on ${new Date(property.createdAt).toLocaleDateString("en-US", {
                           month: "short",
@@ -431,6 +432,9 @@ const HostelSearchPage = () => {
                           year: "numeric",
                         })}`
                       : ""}
+                  </div>
+                  <div className="absolute top-4 right-4">
+                    <AvailabilityBadge isAvailable={property.isAvailable} />
                   </div>
 
                   <div className="p-4 text-left">

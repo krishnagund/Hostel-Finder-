@@ -21,6 +21,10 @@ const propertySchema = new mongoose.Schema({
   roomImages: [String],
   latitude: Number,
   longitude: Number,
+  isAvailable: {
+    type: Boolean,
+    default: true
+  },
 }, { timestamps: true });
 
 export default mongoose.model('Property', propertySchema);

@@ -12,6 +12,7 @@ import { toast } from "react-toastify";
 import RenterInfo from "../components/RenterInfo";
 import TranslatedText from "../components/TranslatedText";
 import LanguageToggle from "../components/LanguageToggle";
+import AvailabilityBadge from "../components/AvailabilityBadge";
 
 import { FaBars, FaTimes } from "react-icons/fa";
 import { Link } from "react-router-dom";
@@ -95,7 +96,7 @@ const Home = () => {
   return (
     <div className="bg-gray-50 min-h-screen font-sans">
       {/* Navbar */}
-      <nav className="flex justify-between items-center px-6 sm:px-8 py-4 shadow-md bg-white relative">
+      <nav className="flex justify-between items-center px-6 sm:px-8 py-4 bg-gray-50 relative">
         {/* Logo */}
         <div
           className="flex items-center space-x-2 text-2xl sm:text-3xl font-bold cursor-pointer"
@@ -138,7 +139,7 @@ const Home = () => {
           ) : (
             <>
               <Link
-                to="/inbox"
+                to="/student-profile?tab=inbox"
                 className="text-white bg-[#3A2C99] px-4 py-2 rounded-md hover:bg-white hover:text-black transition"
               >
                 Messages
@@ -187,7 +188,7 @@ const Home = () => {
             ) : (
               <>
                 <Link
-                  to="/inbox"
+                  to="/student-profile?tab=inbox"
                   className="text-white bg-[#3A2C99] px-4 py-2 rounded-md hover:bg-white hover:text-black transition text-center"
                   onClick={() => setMenuOpen(false)}
                 >
@@ -355,10 +356,13 @@ const Home = () => {
                   <p className="text-sm text-gray-700 mb-1">
                     <TranslatedText text={property.city} />
                   </p>
-                  <p className="text-sm text-gray-700 mb-1">
-                    <RenterInfo text="Available from:" />{" "}
-                    <TranslatedText text={`${property.availabilityDay} ${property.availabilityMonth}`} />
-                  </p>
+                  <div className="flex items-center justify-between mb-2">
+                    <p className="text-sm text-gray-700">
+                      <RenterInfo text="Available from:" />{" "}
+                      <TranslatedText text={`${property.availabilityDay} ${property.availabilityMonth}`} />
+                    </p>
+                    <AvailabilityBadge isAvailable={property.isAvailable} />
+                  </div>
                   <p className="text-sm text-gray-700 mb-1">
                     <RenterInfo text="Contact:" /> {property.phone}
                   </p>

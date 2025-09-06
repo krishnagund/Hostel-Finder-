@@ -1,5 +1,5 @@
 import { State, City } from "country-state-city";
-import { useState, useContext } from "react";
+import { useState, useContext, useEffect } from "react";
 import { AppContext } from "../context/Appcontext";
 import { toast } from "react-toastify";
 import axios from "axios";
@@ -7,9 +7,9 @@ import { useNavigate } from "react-router-dom";
 import RenterInfo from "./RenterInfo";
 import TranslatedText from "./TranslatedText";
 
-const PropertyForm = ({ propertyType, onBack }) => {
+const PropertyForm = ({ propertyType, onBack, editProperty = null }) => {
   const navigate = useNavigate();
-  const { backendurl } = useContext(AppContext);
+  const { backendurl, userData } = useContext(AppContext);
   const [formData, setFormData] = useState({
     properttyType: "",
     address: "",
@@ -27,6 +27,50 @@ const PropertyForm = ({ propertyType, onBack }) => {
   const [roomImages, setRoomImages] = useState([]);
   const [selectedState, setSelectedState] = useState("");
   const [cities, setCities] = useState([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [existingImages, setExistingImages] = useState([]);
+
+  // Pre-populate email and phone from logged-in user data
+  useEffect(() => {
+    if (userData) {
+      setFormData(prev => ({
+        ...prev,
+        email: userData.email || "",
+        phone: userData.phone || ""
+      }));
+    }
+  }, [userData]);
+
+  // Populate form data when editing
+  useEffect(() => {
+    if (editProperty) {
+      setFormData({
+        properttyType: editProperty.properttyType || "",
+        address: editProperty.address || "",
+        state: editProperty.state || "",
+        city: editProperty.city || "",
+        postalCode: editProperty.postalCode || "",
+        phone: editProperty.phone || "",
+        email: editProperty.email || "",
+        rent: editProperty.rent || "",
+        deposit: editProperty.deposit || "",
+        availabilityMonth: editProperty.availabilityMonth || "",
+        availabilityDay: editProperty.availabilityDay || "",
+        heading: editProperty.heading || "",
+      });
+      
+      if (editProperty.roomImages && editProperty.roomImages.length > 0) {
+        setExistingImages(editProperty.roomImages);
+      }
+      
+      // Set cities for the selected state
+      if (editProperty.state) {
+        setSelectedState(editProperty.state);
+        const citiesList = City.getCitiesOfState("IN", editProperty.state);
+        setCities(citiesList);
+      }
+    }
+  }, [editProperty]);
 
   const handleStateChange = (e) => {
     const stateCode = e.target.value;
@@ -65,6 +109,8 @@ const PropertyForm = ({ propertyType, onBack }) => {
       return;
     }
 
+    setIsLoading(true);
+
     const formDataToSend = new FormData();
     Object.entries(formData).forEach(([key, value]) =>
       formDataToSend.append(key, value)
@@ -74,16 +120,27 @@ const PropertyForm = ({ propertyType, onBack }) => {
     });
 
     try {
-      await axios.post(`${backendurl}/api/property/add`, formDataToSend, {
-        headers: { "Content-Type": "multipart/form-data" },
-        withCredentials: true,
-      });
-
-      toast.success("Property added!");
+      if (editProperty) {
+        // Update existing property
+        await axios.put(`${backendurl}/api/property/update/${editProperty._id}`, formDataToSend, {
+          headers: { "Content-Type": "multipart/form-data" },
+          withCredentials: true,
+        });
+        toast.success("Property updated successfully!");
+      } else {
+        // Create new property
+        await axios.post(`${backendurl}/api/property/add`, formDataToSend, {
+          headers: { "Content-Type": "multipart/form-data" },
+          withCredentials: true,
+        });
+        toast.success("Property added successfully!");
+      }
       onBack();
     } catch (error) {
       console.error(error);
-      toast.error("Failed to add property");
+      toast.error(editProperty ? "Failed to update property. Please try again." : "Failed to add property. Please try again.");
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -92,7 +149,7 @@ const PropertyForm = ({ propertyType, onBack }) => {
       {propertyType === "single" ? (
         <div className="max-w-2xl mx-auto bg-white p-6 sm:p-8 shadow-md rounded-md">
           <h2 className="text-xl sm:text-2xl font-semibold mb-6">
-            <RenterInfo text="Add a New Listing" />
+            <RenterInfo text={editProperty ? "Edit Property Listing" : "Add a New Listing"} />
           </h2>
 
           <form className="flex flex-col gap-6" onSubmit={handleSubmit}>
@@ -203,12 +260,11 @@ const PropertyForm = ({ propertyType, onBack }) => {
               </label>
               <input
                 type="text"
-                className="w-full border border-gray-300 rounded-md p-2"
+                className="w-full border border-gray-300 rounded-md p-2 bg-gray-100 cursor-not-allowed"
                 placeholder="(XXX) XXX-XXXX"
                 value={formData.phone}
-                onChange={(e) =>
-                  setFormData({ ...formData, phone: e.target.value })
-                }
+                readOnly
+                disabled
               />
             </div>
 
@@ -219,12 +275,11 @@ const PropertyForm = ({ propertyType, onBack }) => {
               </label>
               <input
                 type="email"
-                className="w-full border border-gray-300 rounded-md p-2"
+                className="w-full border border-gray-300 rounded-md p-2 bg-gray-100 cursor-not-allowed"
                 placeholder="example@email.com"
                 value={formData.email}
-                onChange={(e) =>
-                  setFormData({ ...formData, email: e.target.value })
-                }
+                readOnly
+                disabled
               />
             </div>
 
@@ -332,10 +387,35 @@ const PropertyForm = ({ propertyType, onBack }) => {
               />
             </div>
 
+            {/* Existing Images */}
+            {editProperty && existingImages.length > 0 && (
+              <div>
+                <label className="block font-medium mb-1">
+                  <RenterInfo text="Current Images" />
+                </label>
+                <div className="grid grid-cols-2 gap-2 mb-4">
+                  {existingImages.map((img, index) => (
+                    <img
+                      key={index}
+                      src={
+                        typeof img === "string"
+                          ? img.startsWith("http")
+                            ? img
+                            : `${backendurl}/uploads/${img}`
+                          : img?.url
+                      }
+                      alt={`Room ${index + 1}`}
+                      className="w-full h-32 object-cover rounded"
+                    />
+                  ))}
+                </div>
+              </div>
+            )}
+
             {/* Images */}
             <div>
               <label className="block font-medium mb-1">
-                <RenterInfo text="Upload Room Images *" />
+                <RenterInfo text={editProperty ? "Add New Images (Optional)" : "Upload Room Images *"} />
               </label>
               <input
                 type="file"
@@ -350,9 +430,21 @@ const PropertyForm = ({ propertyType, onBack }) => {
             <div className="flex flex-col sm:flex-row justify-end gap-4 mt-8">
               <button
                 type="submit"
-                className="w-full sm:w-auto text-white bg-[#3A2C99] px-4 py-2 rounded-md hover:bg-white hover:text-black transition cursor-pointer"
+                disabled={isLoading}
+                className={`w-full sm:w-auto px-4 py-2 rounded-md transition ${
+                  isLoading 
+                    ? 'bg-gray-400 cursor-not-allowed text-white opacity-70' 
+                    : 'text-white bg-[#3A2C99] hover:bg-white hover:text-black cursor-pointer'
+                }`}
               >
-                <RenterInfo text="Save and Proceed" />
+                {isLoading ? (
+                  <div className="flex items-center justify-center">
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                    <RenterInfo text="Saving..." />
+                  </div>
+                ) : (
+                  <RenterInfo text={editProperty ? "Update Property" : "Save and Proceed"} />
+                )}
               </button>
               <button
                 onClick={onBack}

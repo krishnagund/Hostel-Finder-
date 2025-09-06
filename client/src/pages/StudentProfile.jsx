@@ -1,13 +1,13 @@
 import { useContext, useState, useEffect, useRef } from "react";
 import { AppContext } from "../context/Appcontext";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { assets } from "../assets/assets";
 import { toast } from "react-toastify";
 import axios from "axios";
 import RenterInfo from "../components/RenterInfo";
 import TranslatedText from "../components/TranslatedText";
 import LanguageToggle from "../components/LanguageToggle";
-import { FaUser, FaBars, FaTimes } from "react-icons/fa";
+import { FaUser, FaBars, FaTimes, FaWhatsapp, FaPhone, FaSms, FaEnvelope, FaClock } from "react-icons/fa";
 
 const StudentProfile = () => {
   const { userData, setIsLoggedin, setUserData, backendurl, logout, loading } =
@@ -19,6 +19,8 @@ const StudentProfile = () => {
   const [profileOpen, setProfileOpen] = useState(false);
   const [mobileProfileOpen, setMobileProfileOpen] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
+  const [activeTab, setActiveTab] = useState('profile');
+  const [messagesLoading, setMessagesLoading] = useState(false);
   const profileRef = useRef(null);
   const mobileProfileRef = useRef(null);
   const [form, setForm] = useState({
@@ -59,10 +61,23 @@ const StudentProfile = () => {
     };
   }, []);
 
+  // Handle URL parameters for tab switching
   useEffect(() => {
-    if (!userData) return;
+    const urlParams = new URLSearchParams(location.search);
+    const tab = urlParams.get('tab');
+    if (tab === 'inbox') {
+      setActiveTab('inbox');
+    } else {
+      setActiveTab('profile');
+    }
+  }, [location.search]);
 
-    (async () => {
+  // Load messages when inbox tab is active
+  useEffect(() => {
+    if (!userData || activeTab !== 'inbox') return;
+
+    const fetchMessages = async () => {
+      setMessagesLoading(true);
       try {
         const res = await fetch(`${backendurl}/api/messages/student`, {
           credentials: "include",
@@ -75,9 +90,13 @@ const StudentProfile = () => {
         }
       } catch (err) {
         console.error("StudentProfile inbox load error:", err);
+      } finally {
+        setMessagesLoading(false);
       }
-    })();
-  }, [userData, backendurl]);
+    };
+
+    fetchMessages();
+  }, [userData, backendurl, activeTab]);
 
   // Initialize editable form from user data
   useEffect(() => {
@@ -154,6 +173,84 @@ const StudentProfile = () => {
       toast.error("Failed to save profile");
     } finally {
       setSaving(false);
+    }
+  };
+
+  // Inbox functionality
+  const groupedByProperty = {};
+  messages.forEach((msg) => {
+    const key = `${msg.property?._id || 'noprop'}_${msg.sender?._id || 'nosender'}`;
+    if (!groupedByProperty[key]) {
+      groupedByProperty[key] = {
+        property: msg.property,
+        sender: msg.sender,
+        messages: [],
+      };
+    }
+    groupedByProperty[key].messages.push(msg);
+  });
+
+  const markAsRead = async (email) => {
+    try {
+      const res = await fetch(`${backendurl}/api/messages/read-student`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ email }),
+      });
+      
+      if (res.ok) {
+        const data = await res.json();
+        
+        // Update local state immediately
+        setMessages(prev => {
+          const updated = prev.map(msg => 
+            msg.sender?.email === email ? { ...msg, read: true } : msg
+          );
+          // Recalculate unread count from updated messages
+          const newUnreadCount = updated.filter(msg => !msg.read).length;
+          setUnreadCount(newUnreadCount);
+          return updated;
+        });
+      } else {
+        const errorData = await res.json();
+        console.error("Failed to mark as read:", errorData);
+      }
+    } catch (err) {
+      console.error("Error marking as read:", err);
+    }
+  };
+
+  const refreshMessages = async () => {
+    try {
+      const res = await fetch(`${backendurl}/api/messages/student`, {
+        credentials: "include",
+      });
+      const data = await res.json();
+      if (data.success) {
+        setMessages(data.messages);
+        const unread = data.messages.filter(msg => !msg.read).length;
+        setUnreadCount(unread);
+      }
+    } catch (err) {
+      console.error("Error refreshing messages:", err);
+    }
+  };
+
+  const logInteraction = async (type, sender, property) => {
+    try {
+      await fetch(`${backendurl}/api/messages/log`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ 
+          receiverId: sender?._id, 
+          propertyId: property?._id || null, 
+          medium: type 
+        }),
+      });
+    } catch (e) {
+      console.error("Error logging interaction:", e);
     }
   };
 
@@ -241,7 +338,7 @@ const StudentProfile = () => {
                 </button>
                 <button
                   onClick={() => {
-                    navigate("/inbox");
+                    navigate("/student-profile?tab=inbox");
                     setProfileOpen(false);
                   }}
                   className="px-4 py-2 hover:bg-gray-100 text-left flex justify-between items-center transition-colors"
@@ -315,7 +412,7 @@ const StudentProfile = () => {
                 </button>
                 <button
                   onClick={() => {
-                    navigate("/inbox");
+                    navigate("/student-profile?tab=inbox");
                     setMobileProfileOpen(false);
                   }}
                   className="px-4 py-2 hover:bg-gray-100 text-left flex justify-between items-center transition-colors"
@@ -345,17 +442,28 @@ const StudentProfile = () => {
       </nav>
 
       {/* ===== Tab Navigation ===== */}
-      <div className="bg-gray-100 px-4 sm:px-6 py-2 flex gap-6 border-b overflow-x-auto scrollbar-hide">
-        <button className="whitespace-nowrap text-sm font-medium text-green-700 border-b-2 border-green-700 pb-1">
+      <div className="bg-gray-100 px-4 sm:px-6 py-3 flex gap-4 sm:gap-6 border-b overflow-x-auto scrollbar-hide">
+        <button 
+          onClick={() => setActiveTab('profile')}
+          className={`whitespace-nowrap text-sm sm:text-base font-medium pb-2 px-1 border-b-2 transition-colors ${
+            activeTab === 'profile' 
+              ? 'text-green-700 border-green-700' 
+              : 'text-gray-600 border-transparent hover:text-gray-800'
+          }`}
+        >
           <RenterInfo text="Student Profile" />
         </button>
         <button
-          onClick={() => navigate("/inbox")}
-          className="whitespace-nowrap text-sm font-medium text-gray-600 flex items-center gap-2"
+          onClick={() => setActiveTab('inbox')}
+          className={`whitespace-nowrap text-sm sm:text-base font-medium pb-2 px-1 border-b-2 flex items-center gap-2 transition-colors ${
+            activeTab === 'inbox' 
+              ? 'text-green-700 border-green-700' 
+              : 'text-gray-600 border-transparent hover:text-gray-800'
+          }`}
         >
           <RenterInfo text="Messages" />
           {unreadCount > 0 && (
-            <span className="bg-red-500 text-white text-xs px-2 py-0.5 rounded-full">
+            <span className="bg-red-500 text-white text-xs px-2 py-0.5 rounded-full flex-shrink-0">
               {unreadCount}
             </span>
           )}
@@ -363,9 +471,11 @@ const StudentProfile = () => {
       </div>
 
       {/* ===== Main Content ===== */}
-      <div className="p-4 sm:p-6 max-w-7xl mx-auto">
-        {/* Profile Header */}
-        <div className="bg-white shadow-md rounded-xl p-4 sm:p-6 mb-6">
+      <div className="px-4 py-6 sm:px-6 sm:py-8 max-w-7xl mx-auto">
+        {activeTab === 'profile' ? (
+          <>
+            {/* Profile Header */}
+            <div className="bg-white shadow-md rounded-xl p-4 sm:p-6 mb-6">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-6">
             <div>
               <h2 className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-800 mb-2">
@@ -907,6 +1017,204 @@ const StudentProfile = () => {
             </form>
           )}
         </div>
+          </>
+        ) : (
+          /* ===== Inbox Tab Content ===== */
+          <div className="space-y-6">
+            {/* Inbox Header */}
+            <div className="bg-white shadow-md rounded-xl p-4 sm:p-6 mb-6">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div className="flex-1 min-w-0">
+                  <h2 className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-800 mb-2">
+                    <RenterInfo text="My Inbox" />
+                  </h2>
+                  <p className="text-gray-600 text-sm sm:text-base">
+                    <RenterInfo text="Manage your messages and communications" />
+                  </p>
+                </div>
+                <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+                  <button
+                    onClick={refreshMessages}
+                    className="bg-blue-500 text-white px-4 py-2.5 rounded-lg text-sm hover:bg-blue-600 transition font-medium"
+                  >
+                    <RenterInfo text="Refresh" />
+                  </button>
+                  {unreadCount > 0 && (
+                    <span className="bg-red-500 text-white text-sm px-3 py-2 rounded-full text-center font-medium">
+                      {unreadCount} new message{unreadCount !== 1 ? 's' : ''}
+                    </span>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            {/* Messages Content */}
+            <div className="bg-white shadow-md rounded-xl p-4 sm:p-6">
+              {messagesLoading ? (
+                <div className="text-center py-8">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#3A2C99] mx-auto mb-4"></div>
+                  <p className="text-gray-600">
+                    <RenterInfo text="Loading messages..." />
+                  </p>
+                </div>
+              ) : messages.length === 0 ? (
+                <div className="text-center py-12">
+                  <div className="text-gray-400 text-6xl mb-4">📧</div>
+                  <p className="text-gray-600 text-lg mb-2">
+                    <RenterInfo text="No messages yet" />
+                  </p>
+                  <p className="text-gray-500 text-sm">
+                    <RenterInfo text="Your messages will appear here when property owners contact you" />
+                  </p>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {Object.values(groupedByProperty).filter(group => group && group.messages && group.messages.length > 0).map((group) => {
+                    const hasUnread = group.messages.some(msg => !msg.read);
+                    return (
+                      <div
+                        key={group.property?._id || 'no-property'}
+                        className={`bg-gray-50 rounded-lg shadow-sm p-4 hover:shadow-md transition ${
+                          hasUnread ? 'border-l-4 border-blue-500' : ''
+                        }`}
+                      >
+                        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start mb-3 gap-3">
+                          <div className="flex-1 min-w-0">
+                            <h3 className="font-semibold text-lg sm:text-xl truncate">
+                              {group.property?.heading || 'Property Not Available'}
+                            </h3>
+                            <p className="text-gray-600 text-sm sm:text-base">
+                              {group.property?.city || 'Unknown City'}, ₹{group.property?.rent || 'N/A'}
+                            </p>
+                            <p className="text-xs sm:text-sm text-gray-500 truncate">
+                              Owner: {group.sender?.name || 'Unknown'} ({group.sender?.email || 'No email'})
+                            </p>
+                          </div>
+                          <div className="flex flex-col sm:items-end gap-2">
+                            <p className="text-xs sm:text-sm text-gray-500">
+                              {group.messages.length} message
+                              {group.messages.length !== 1 ? "s" : ""}
+                            </p>
+                            {hasUnread && (
+                              <span className="inline-block text-xs bg-blue-500 text-white px-2 py-0.5 rounded-full">
+                                New
+                              </span>
+                            )}
+                          </div>
+                        </div>
+
+                        <div className="space-y-2 mb-4">
+                          {group.messages.filter(msg => msg && msg._id).map((msg) => (
+                            <div
+                              key={msg._id}
+                              className={`p-3 sm:p-4 rounded-lg cursor-pointer ${
+                                msg.read ? "bg-gray-50" : "bg-blue-50 border-l-2 border-blue-400"
+                              }`}
+                              onClick={() => !msg.read && msg.sender?.email && markAsRead(msg.sender.email)}
+                            >
+                              <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start mb-2 gap-2">
+                                <div className="font-medium flex items-center gap-2 flex-wrap">
+                                  {msg.medium && (
+                                    <span className="text-xs bg-gray-200 px-2 py-1 rounded whitespace-nowrap">
+                                      {msg.medium.toUpperCase()}
+                                    </span>
+                                  )}
+                                  {!msg.read && <FaClock className="text-blue-500 flex-shrink-0" />}
+                                </div>
+                                <div className="text-xs sm:text-sm text-gray-500 whitespace-nowrap">
+                                  {msg.createdAt ? new Date(msg.createdAt).toLocaleDateString() : 'Unknown Date'}
+                                </div>
+                              </div>
+                              <p className="text-gray-700 text-sm sm:text-base break-words">{msg.content || 'No content'}</p>
+                              {msg.phone && (
+                                <p className="text-xs sm:text-sm text-gray-600 mt-1 break-all">
+                                  Phone: {msg.phone}
+                                </p>
+                              )}
+                              {msg.moveInDate && (
+                                <p className="text-xs sm:text-sm text-gray-600 break-words">
+                                  Move-in Date: {msg.moveInDate}
+                                </p>
+                              )}
+                            </div>
+                          ))}
+                        </div>
+
+                        {/* Contact Options */}
+                        <div className="border-t pt-3">
+                          <h4 className="text-sm font-medium text-gray-700 mb-3">
+                            <RenterInfo text="Contact Owner:" />
+                          </h4>
+                          <div className="grid grid-cols-2 sm:flex sm:flex-wrap gap-2 sm:gap-3">
+                            <button
+                              onClick={() => {
+                                if (group.sender?.phone) {
+                                  window.open(`https://wa.me/91${group.sender.phone}`, "_blank");
+                                }
+                                logInteraction("whatsapp", group.sender, group.property);
+                              }}
+                              disabled={!group.sender?.phone}
+                              className="flex items-center justify-center gap-2 bg-green-500 text-white px-3 py-2.5 rounded-lg hover:bg-green-600 transition text-sm disabled:bg-gray-300 disabled:cursor-not-allowed min-h-[44px]"
+                            >
+                              <FaWhatsapp className="flex-shrink-0" />
+                              <span className="hidden sm:inline">WhatsApp</span>
+                              <span className="sm:hidden">WA</span>
+                            </button>
+                            
+                            <button
+                              onClick={() => {
+                                if (group.sender?.phone) {
+                                  window.location.href = `tel:+91${group.sender.phone}`;
+                                }
+                                logInteraction("call", group.sender, group.property);
+                              }}
+                              disabled={!group.sender?.phone}
+                              className="flex items-center justify-center gap-2 bg-blue-500 text-white px-3 py-2.5 rounded-lg hover:bg-blue-600 transition text-sm disabled:bg-gray-300 disabled:cursor-not-allowed min-h-[44px]"
+                            >
+                              <FaPhone className="flex-shrink-0" />
+                              <span className="hidden sm:inline">Call</span>
+                              <span className="sm:hidden">Call</span>
+                            </button>
+                            
+                            <button
+                              onClick={() => {
+                                if (group.sender?.phone) {
+                                  window.location.href = `sms:+91${group.sender.phone}`;
+                                }
+                                logInteraction("sms", group.sender, group.property);
+                              }}
+                              disabled={!group.sender?.phone}
+                              className="flex items-center justify-center gap-2 bg-purple-500 text-white px-3 py-2.5 rounded-lg hover:bg-purple-600 transition text-sm disabled:bg-gray-300 disabled:cursor-not-allowed min-h-[44px]"
+                            >
+                              <FaSms className="flex-shrink-0" />
+                              <span className="hidden sm:inline">SMS</span>
+                              <span className="sm:hidden">SMS</span>
+                            </button>
+                            
+                            <button
+                              onClick={() => {
+                                if (group.sender?.email) {
+                                  window.location.href = `mailto:${group.sender.email}`;
+                                }
+                                logInteraction("email", group.sender, group.property);
+                              }}
+                              disabled={!group.sender?.email}
+                              className="flex items-center justify-center gap-2 bg-gray-500 text-white px-3 py-2.5 rounded-lg hover:bg-gray-600 transition text-sm disabled:bg-gray-300 disabled:cursor-not-allowed min-h-[44px]"
+                            >
+                              <FaEnvelope className="flex-shrink-0" />
+                              <span className="hidden sm:inline">Email</span>
+                              <span className="sm:hidden">Email</span>
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

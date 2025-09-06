@@ -6,6 +6,7 @@ import PropertyDetailsModal from "./PropertyDetailsModal";
 import RenterInfo from "../components/RenterInfo";
 import TranslatedText from "../components/TranslatedText";
 import LanguageToggle from "../components/LanguageToggle";
+import AvailabilityBadge from "../components/AvailabilityBadge";
 import { FaUser } from "react-icons/fa";
 
 const FavoriteProperties = () => {
@@ -50,7 +51,7 @@ const FavoriteProperties = () => {
   return (
     <div className="bg-gray-50 min-h-screen font-sans">
       {/* ===== Navbar ===== */}
-      <nav className="flex flex-wrap justify-between items-center px-4 sm:px-8 py-4 sm:py-6 shadow-md bg-white">
+      <nav className="flex flex-wrap justify-between items-center px-4 sm:px-8 py-4 sm:py-6 bg-gray-50">
         {/* Logo */}
         <div
           className="flex items-center space-x-2 text-2xl sm:text-3xl font-bold cursor-pointer"
@@ -117,7 +118,7 @@ const FavoriteProperties = () => {
                 </button>
                 <button
                   onClick={() => {
-                    navigate("/inbox");
+                    navigate("/student-profile?tab=inbox");
                     setProfileOpen(false);
                   }}
                   className="px-4 py-2 hover:bg-gray-100 text-left"
@@ -137,34 +138,55 @@ const FavoriteProperties = () => {
         </h1>
 
         {favorites.length === 0 ? (
-          <p className="text-gray-600">
-            <RenterInfo text="You haven’t favorited any properties yet." />
-          </p>
+          <div className="text-center py-12">
+            <div className="text-gray-400 text-6xl mb-4">❤️</div>
+            <p className="text-gray-600 text-lg mb-2">
+              <RenterInfo text="You haven't favorited any properties yet" />
+            </p>
+            <p className="text-gray-500 text-sm">
+              <RenterInfo text="Start exploring properties and add them to your favorites" />
+            </p>
+          </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {favorites.map((property) => (
               <div
                 key={property._id}
-                className="bg-white rounded shadow p-4 relative"
+                className="bg-white rounded-xl shadow-md overflow-hidden border border-gray-200 hover:shadow-xl transition-transform transform hover:scale-105 relative"
               >
+                {/* Property Image */}
                 {property.roomImages && property.roomImages.length > 0 ? (
                   <img
                     src={
                       typeof property.roomImages[0] === "string"
-                        ? property.roomImages[0]
+                        ? property.roomImages[0].startsWith("http")
+                          ? property.roomImages[0]
+                          : `${backendurl}/uploads/${property.roomImages[0]}`
                         : property.roomImages[0]?.url
                     }
                     alt="Property"
                     loading="lazy"
-                    className="w-full h-56 object-cover"
+                    className="w-full h-48 object-cover"
                   />
                 ) : (
-                  <div className="w-full h-56 bg-gray-200 flex items-center justify-center text-gray-500 text-sm">
+                  <div className="w-full h-48 bg-gray-200 flex items-center justify-center text-gray-500 text-sm">
                     <RenterInfo text="No Image Available" />
                   </div>
                 )}
-                <div className="p-5 text-left">
-                  <p className="text-xl font-semibold text-gray-800 mb-1">
+
+                {/* Posted Date */}
+                <div className="absolute top-3 right-3 bg-white px-2 py-1 text-xs font-medium text-gray-600 rounded shadow">
+                  <RenterInfo text="Posted on" />{" "}
+                  {new Date(property.createdAt).toLocaleDateString("en-US", {
+                    month: "short",
+                    day: "numeric",
+                    year: "numeric",
+                  })}
+                </div>
+
+                {/* Property Details */}
+                <div className="p-4 sm:p-5 text-left">
+                  <p className="text-lg sm:text-xl font-semibold text-gray-800 mb-1">
                     ₹{new Intl.NumberFormat("en-IN").format(Number(property.rent) || 0)}
                   </p>
                   <p className="text-sm text-gray-700 mb-1">
@@ -173,23 +195,29 @@ const FavoriteProperties = () => {
                   <p className="text-sm text-gray-700 mb-1">
                     <TranslatedText text={property.city} />
                   </p>
-                  <p className="text-sm text-gray-700 mb-1">
-                    <RenterInfo text="Available from:" />{" "}
-                    <TranslatedText text={`${property.availabilityDay} ${property.availabilityMonth}`} />
-                  </p>
+                  <div className="flex items-center justify-between mb-2">
+                    <p className="text-sm text-gray-700">
+                      <RenterInfo text="Available from:" />{" "}
+                      <TranslatedText text={`${property.availabilityDay} ${property.availabilityMonth}`} />
+                    </p>
+                    <AvailabilityBadge isAvailable={property.isAvailable} />
+                  </div>
                   <p className="text-sm text-gray-700 mb-1">
                     <RenterInfo text="Contact:" /> {property.phone}
                   </p>
                   <p className="text-sm text-gray-700 mb-1">
                     <TranslatedText text={`${property.city}, ${property.state}`} />
                   </p>
+                  
+                  <div className="mt-4 text-right">
+                    <button
+                      onClick={() => setSelectedProperty(property)}
+                      className="text-white bg-[#3A2C99] px-4 py-2 rounded-md hover:bg-white hover:text-black transition cursor-pointer"
+                    >
+                      <RenterInfo text="View Details" />
+                    </button>
+                  </div>
                 </div>
-                <button
-                  onClick={() => setSelectedProperty(property)}
-                  className="text-white bg-[#3A2C99] px-4 py-2 rounded-md hover:bg-white hover:text-black transition cursor-pointer"
-                >
-                  <RenterInfo text="View Details" />
-                </button>
               </div>
             ))}
           </div>

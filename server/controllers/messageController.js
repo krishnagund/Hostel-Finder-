@@ -55,7 +55,10 @@ export const getMyMessages = async (req, res) => {
       .populate("sender", "name email phone")
       .sort({ createdAt: -1 });
 
-    return res.json({ success: true, messages });
+    // Filter out messages where property or sender is null (deleted)
+    const validMessages = messages.filter(msg => msg.property && msg.sender);
+
+    return res.json({ success: true, messages: validMessages });
   } catch (err) {
     console.error("getMyMessages error:", err);
     return res.status(500).json({ success: false, message: "Server error" });
@@ -66,10 +69,17 @@ export const getUnreadCount = async (req, res) => {
   try {
     const userId = req.userId;
     
-    const unreadCount = await Message.countDocuments({ 
+    // Get unread messages and filter out those with deleted references
+    const unreadMessages = await Message.find({ 
       receiver: userId, 
       read: false 
-    });
+    })
+    .populate("property")
+    .populate("sender");
+
+    // Filter out messages where property or sender is null (deleted)
+    const validUnreadMessages = unreadMessages.filter(msg => msg.property && msg.sender);
+    const unreadCount = validUnreadMessages.length;
 
     return res.json({ success: true, unreadCount });
   } catch (err) {
@@ -115,7 +125,10 @@ export const getStudentMessages = async (req, res) => {
       .populate("property", "heading city rent phone email") // include property details & contact info
       .sort({ createdAt: -1 });
 
-    res.json({ success: true, messages });
+    // Filter out messages where property or sender is null (deleted)
+    const validMessages = messages.filter(msg => msg.property && msg.sender);
+
+    res.json({ success: true, messages: validMessages });
   } catch (err) {
     console.error("getStudentMessages error:", err);
     res.status(500).json({ success: false, message: "Server error" });

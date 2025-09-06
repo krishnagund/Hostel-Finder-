@@ -14,6 +14,7 @@ const HostelOwnerHome = () => {
   const [showListingForm, setShowListingForm] = useState(false);
   const [selectedPropertyType, setSelectedPropertyType] = useState(null); 
   const [properties, setProperties] = useState([]);
+  const [editProperty, setEditProperty] = useState(null);
   const { backendurl } = useContext(AppContext);
 
   const fetchProperties = async () => {
@@ -35,8 +36,15 @@ const HostelOwnerHome = () => {
   const handleBackFromListing = () => {
     setShowListingForm(false);
     setSelectedPropertyType(null);
+    setEditProperty(null);
     setActiveTab(lastTabBeforeListing);
     fetchProperties();
+  };
+
+  const handleEditProperty = (property) => {
+    setEditProperty(property);
+    setSelectedPropertyType("single");
+    setShowListingForm(true);
   };
 
   const renderTabContent = () => {
@@ -53,6 +61,7 @@ const HostelOwnerHome = () => {
           <PropertyForm
             propertyType={selectedPropertyType}
             onBack={handleBackFromListing}
+            editProperty={editProperty}
           />
         );
       }
@@ -64,7 +73,7 @@ const HostelOwnerHome = () => {
       case "forms":
         return <FormsTab />;
       default:
-        return <ListingsTab properties={properties} />;
+        return <ListingsTab properties={properties} onPropertyUpdate={fetchProperties} onEditProperty={handleEditProperty} />;
     }
   };
 
@@ -82,7 +91,7 @@ const HostelOwnerHome = () => {
         }}
         setSelectedPropertyType={setSelectedPropertyType}
       />
-      <div className="p-4 sm:p-6 max-w-7xl mx-auto">
+      <div className="max-w-7xl mx-auto">
         {renderTabContent()}
       </div>
     </div>

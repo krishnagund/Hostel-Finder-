@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useContext } from "react";
 import { Routes,Route,useLocation } from "react-router-dom";
 import Home from './pages/Home';
 import ResetPassword from './pages/ResetPassword';  
@@ -8,8 +8,9 @@ import StudentHome from "./components/StudentHome";
 import HostelOwnerHome from "./components/HostelOwnerHome";
 import { ToastContainer} from "react-toastify";
 import 'react-toastify/dist/ReactToastify.css';
-import StudentProfile from "./pages/StudentProfile"
-import StudentInbox from "./pages/Inbox"
+import StudentProfile from "./pages/StudentProfile";
+import Loader from "./components/Loader";
+import { AppContext } from "./context/Appcontext";
 
 
 import AllProperties from "./pages/AllProperties";
@@ -29,8 +30,14 @@ import EntryGate from "./pages/EntryGate";
 
 const App = () => {
   const location = useLocation();
+  const { loading } = useContext(AppContext);
   const hideFooterRoutes = ["/hostels"];
   const shouldHideFooter = hideFooterRoutes.includes(location.pathname);
+  
+  if (loading) {
+    return <Loader />;
+  }
+  
   return (
     <div>
       <ToastContainer />
@@ -59,7 +66,6 @@ const App = () => {
         <Route path='/email-verify' element={<EmailVerify/>}/>
         <Route path='/reset-password' element={<ResetPassword/>}/>
          <Route path="/student-profile" element={ <ProtectedRoute allowedRoles={["student"]}><StudentProfile /></ProtectedRoute>} />
-         <Route path="/inbox" element={<ProtectedRoute allowedRoles={["student"]}><StudentInbox /></ProtectedRoute>} />
 
       <Route path="/all-properties" element={<AllProperties />} />
        <Route path="/hostels" element={<HostelSearchPage />} /> 

@@ -85,3 +85,85 @@ export const getPropertiesByCity = async (req, res) => {
     res.status(500).json({ message: 'Error fetching city properties', error: err.message });
   }
 };
+
+export const updateProperty = async (req, res) => {
+  try {
+    const userId = req.userId;
+    const propertyId = req.params.id;
+    const updateData = req.body;
+
+    // Check if property belongs to user
+    const property = await Property.findOne({ _id: propertyId, user: userId });
+    if (!property) {
+      return res.status(404).json({ success: false, message: 'Property not found or unauthorized' });
+    }
+
+    // Update property
+    const updatedProperty = await Property.findByIdAndUpdate(
+      propertyId,
+      updateData,
+      { new: true, runValidators: true }
+    );
+
+    res.status(200).json({ success: true, property: updatedProperty });
+  } catch (err) {
+    console.error("Error updating property:", err);
+    res.status(500).json({ success: false, message: 'Error updating property', error: err.message });
+  }
+};
+
+export const deleteProperty = async (req, res) => {
+  try {
+    const userId = req.userId;
+    const propertyId = req.params.id;
+
+    // Check if property belongs to user
+    const property = await Property.findOne({ _id: propertyId, user: userId });
+    if (!property) {
+      return res.status(404).json({ success: false, message: 'Property not found or unauthorized' });
+    }
+
+    // Import Message model for cascading delete
+    const Message = (await import('../models/messageModel.js')).default;
+
+    // Delete all messages associated with this property
+    await Message.deleteMany({ property: propertyId });
+
+    // Delete the property
+    await Property.findByIdAndDelete(propertyId);
+    
+    res.status(200).json({ success: true, message: 'Property and associated messages deleted successfully' });
+  } catch (err) {
+    console.error("Error deleting property:", err);
+    res.status(500).json({ success: false, message: 'Error deleting property', error: err.message });
+  }
+};
+
+export const toggleAvailability = async (req, res) => {
+  try {
+    const userId = req.userId;
+    const propertyId = req.params.id;
+
+    // Check if property belongs to user
+    const property = await Property.findOne({ _id: propertyId, user: userId });
+    if (!property) {
+      return res.status(404).json({ success: false, message: 'Property not found or unauthorized' });
+    }
+
+    // Toggle availability
+    const updatedProperty = await Property.findByIdAndUpdate(
+      propertyId,
+      { isAvailable: !property.isAvailable },
+      { new: true }
+    );
+
+    res.status(200).json({ 
+      success: true, 
+      property: updatedProperty,
+      message: `Property ${updatedProperty.isAvailable ? 'marked as available' : 'marked as unavailable'}`
+    });
+  } catch (err) {
+    console.error("Error toggling availability:", err);
+    res.status(500).json({ success: false, message: 'Error toggling availability', error: err.message });
+  }
+};
