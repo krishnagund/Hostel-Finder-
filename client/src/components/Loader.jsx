@@ -1,104 +1,60 @@
-import React from 'react';
+import React from "react";
 
 const Loader = () => {
   const loaderStyles = {
     container: {
-      position: 'fixed',
+      position: "fixed",
       top: 0,
       left: 0,
       right: 0,
       bottom: 0,
-      backgroundColor: 'white',
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      zIndex: 9999
+      backgroundColor: "white",
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
+      zIndex: 9999,
     },
     loader: {
-      width: '50px',
-      height: '165px',
-      position: 'relative'
+      color: "#3A2C99",
+      width: "12px", // bigger than 4px
+      aspectRatio: "1 / 1",
+      borderRadius: "50%",
+      boxShadow: "50px 0 0 14px, 100px 0 0 6px, 150px 0 0 0",
+      transform: "translateX(-100px)",
+      animation: "l21 0.6s infinite alternate linear",
     },
-    ball: {
-      position: 'absolute',
-      left: '50%',
-      top: '0',
-      transform: 'translate(-50%, 0)',
-      width: '16px',
-      height: '16px',
-      backgroundColor: '#3A2C99',
-      borderRadius: '50%',
-      animation: 'bounce 2s linear infinite'
-    },
-    square: {
-      position: 'absolute',
-      left: '0',
-      right: '0',
-      bottom: '0',
-      margin: 'auto',
-      height: '48px',
-      width: '48px',
-      backgroundColor: '#fff',
-      borderRadius: '4px',
-      animation: 'rotate 2s linear infinite'
-    }
   };
 
   return (
     <>
       <style>
         {`
-          @keyframes bounce {
-            0%, 50%, 100% {
-              transform: translate(-50%, 0px);
-              height: 20px;
-            }
-            20% {
-              transform: translate(-25%, 85px);
-              height: 28px;
-            }
-            25% {
-              transform: translate(-25%, 110px);
-              height: 12px;
-            }
-            70% {
-              transform: translate(-75%, 85px);
-              height: 28px;
-            }
-            75% {
-              transform: translate(-75%, 108px);
-              height: 12px;
+          @keyframes l21 {
+            50%  { box-shadow: 50px 0 0 6px, 100px 0 0 14px, 150px 0 0 6px }
+            100% { box-shadow: 50px 0 0 0   , 100px 0 0 6px , 150px 0 0 14px }
+          }
+
+          /* Responsive scaling */
+          @media (max-width: 768px) {
+            .loader-ball {
+              width: 8px !important;
+              box-shadow: 30px 0 0 10px, 60px 0 0 4px, 90px 0 0 0 !important;
+              transform: translateX(-60px) !important;
             }
           }
-          
-          @keyframes rotate {
-            0%, 50%, 100% { 
-              transform: rotate(0deg);
-            }
-            25% { 
-              transform: rotate(90deg);
-            }
-            75% { 
-              transform: rotate(-90deg);
+
+          @media (max-width: 480px) {
+            .loader-ball {
+              width: 6px !important;
+              box-shadow: 20px 0 0 8px, 40px 0 0 3px, 60px 0 0 0 !important;
+              transform: translateX(-40px) !important;
             }
           }
         `}
       </style>
+
       <div style={loaderStyles.container}>
-        <div style={{ textAlign: 'center' }}>
-          <div style={loaderStyles.loader}>
-            <div style={loaderStyles.ball}></div>
-            <div style={loaderStyles.square}></div>
-          </div>
-          <p style={{ 
-            marginTop: '20px', 
-            color: '#3A2C99', 
-            fontSize: '16px', 
-            fontWeight: '500' 
-          }}>
-            Loading...
-          </p>
-        </div>
+        <div className="loader-ball" style={loaderStyles.loader}></div>
       </div>
     </>
   );
