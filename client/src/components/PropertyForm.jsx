@@ -104,9 +104,19 @@ const PropertyForm = ({ propertyType, onBack, editProperty = null }) => {
       }
     }
 
-    if (roomImages.length === 0) {
-      toast.error("Please upload at least one room image");
-      return;
+    // Require at least one image only when creating a new property,
+    // or when editing and there are no existing images.
+    if (!editProperty) {
+      if (roomImages.length === 0) {
+        toast.error("Please upload at least one room image");
+        return;
+      }
+    } else {
+      const hasExisting = existingImages && existingImages.length > 0;
+      if (!hasExisting && roomImages.length === 0) {
+        toast.error("Please upload at least one room image");
+        return;
+      }
     }
 
     setIsLoading(true);
@@ -165,15 +175,13 @@ const PropertyForm = ({ propertyType, onBack, editProperty = null }) => {
                   setFormData({ ...formData, properttyType: e.target.value })
                 }
               >
-                <option>
-                  <TranslatedText text="None Selected" />
-                </option>
-                <option>
-                  <TranslatedText text="Single Unit" />
-                </option>
-                <option>
-                  <TranslatedText text="Room for Rent" />
-                </option>
+                <option value="">None Selected</option>
+                <option value="Single Unit">Single Unit</option>
+                <option value="Room for Rent">Room for Rent</option>
+                <option value="Single Sharing">Single Sharing</option>
+                <option value="Double Sharing">Double Sharing</option>
+                <option value="Triple Sharing">Triple Sharing</option>
+                <option value="Four Sharing">Four Sharing</option>
               </select>
             </div>
 
@@ -288,15 +296,18 @@ const PropertyForm = ({ propertyType, onBack, editProperty = null }) => {
               <label className="block font-medium mb-1">
                 <RenterInfo text="Monthly Rent *" />
               </label>
-              <input
-                type="number"
-                className="w-full border border-gray-300 rounded-md p-2"
-                placeholder="Rs"
-                value={formData.rent}
-                onChange={(e) =>
-                  setFormData({ ...formData, rent: e.target.value })
-                }
-              />
+              <div className="w-full border border-gray-300 rounded-md p-2 flex items-center gap-2">
+                <span className="text-gray-600">₹</span>
+                <input
+                  type="text"
+                  className="w-full outline-none"
+                  placeholder="e.g. 6500 per bed"
+                  value={formData.rent}
+                  onChange={(e) =>
+                    setFormData({ ...formData, rent: e.target.value })
+                  }
+                />
+              </div>
             </div>
 
             {/* Deposit */}
@@ -304,23 +315,15 @@ const PropertyForm = ({ propertyType, onBack, editProperty = null }) => {
               <label className="block font-medium mb-1">
                 <RenterInfo text="Security Deposit *" />
               </label>
-              <select
+              <input
+                type="text"
                 className="w-full border border-gray-300 rounded-md p-2"
+                placeholder="e.g. 1 month rent / 5000"
                 value={formData.deposit}
                 onChange={(e) =>
                   setFormData({ ...formData, deposit: e.target.value })
                 }
-              >
-                <option>
-                  <TranslatedText text="1 Month Rent" />
-                </option>
-                <option>
-                  <TranslatedText text="Half Month Rent" />
-                </option>
-                <option>
-                  <TranslatedText text="Custom" />
-                </option>
-              </select>
+              />
             </div>
 
             {/* Availability */}
@@ -373,12 +376,12 @@ const PropertyForm = ({ propertyType, onBack, editProperty = null }) => {
             {/* Heading */}
             <div>
               <label className="block font-medium mb-1">
-                <RenterInfo text="Property Heading *" />
+                <RenterInfo text="Nearest College *" />
               </label>
               <input
                 type="text"
                 className="w-full border border-gray-300 rounded-md p-2"
-                placeholder="e.g. Cozy 1 Bedroom Downtown Condo"
+                placeholder="e.g. IIT Delhi, RGUKT Nuzvid, Fergusson College"
                 maxLength={80}
                 value={formData.heading}
                 onChange={(e) =>

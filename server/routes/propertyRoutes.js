@@ -35,7 +35,7 @@ router.get('/all-properties', getAllProperties);
 router.get('/search/:city', getPropertiesByCity);
 
 // Property management routes
-router.put('/update/:id', userAuth, updateProperty);
+router.put('/update/:id', userAuth, upload.array('roomImages', 10), updateProperty);
 router.delete('/delete/:id', userAuth, deleteProperty);
 router.patch('/toggle-availability/:id', userAuth, toggleAvailability);
 

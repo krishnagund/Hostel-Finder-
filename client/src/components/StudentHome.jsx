@@ -292,7 +292,7 @@ const updateUnreadCount = (newCount) => {
                 if (e.key === "Enter") {
                   const q = (searchQuery || "").trim();
                   if (!q) {
-                    toast.error("Please type a city name");
+                    toast.error("Please type a city or college name");
                     return;
                   }
                   navigate(`/hostels?city=${encodeURIComponent(q)}`);
@@ -304,7 +304,7 @@ const updateUnreadCount = (newCount) => {
               onClick={() => {
                 const q = (searchQuery || "").trim();
                 if (!q) {
-                  toast.error("Please type a city name");
+                  toast.error("Please type a city or college name");
                   return;
                 }
                 navigate(`/hostels?city=${encodeURIComponent(q)}`);

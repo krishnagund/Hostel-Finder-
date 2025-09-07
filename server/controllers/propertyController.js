@@ -146,11 +146,28 @@ export const getUserProperties = async (req, res) => {
 
 export const getAllProperties = async (req, res) => {
   try {
-    // Only show approved and available properties to public
-    const properties = await Property.find({ 
-      status: 'approved',
-      isAvailable: true 
-    }).sort({ createdAt: -1 });
+    const { q, all } = req.query;
+
+    // Build base filter
+    const filter = {};
+    if (!all) {
+      filter.status = 'approved';
+      filter.isAvailable = true;
+    }
+
+    // Text search across city, state, address, and heading (nearest college)
+    if (q && q.trim()) {
+      const escaped = q.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      const regex = new RegExp(escaped, 'i');
+      filter.$or = [
+        { city: regex },
+        { state: regex },
+        { address: regex },
+        { heading: regex }
+      ];
+    }
+
+    const properties = await Property.find(filter).sort({ createdAt: -1 });
     res.status(200).json({ success: true, properties });
   } catch (err) {
     res.status(500).json({ message: 'Error fetching all properties', error: err.message });
@@ -180,7 +197,6 @@ export const updateProperty = async (req, res) => {
   try {
     const userId = req.userId;
     const propertyId = req.params.id;
-    const updateData = req.body;
 
     // Check if property belongs to user
     const property = await Property.findOne({ _id: propertyId, user: userId });
@@ -188,7 +204,43 @@ export const updateProperty = async (req, res) => {
       return res.status(404).json({ success: false, message: 'Property not found or unauthorized' });
     }
 
-    // Update property
+    // Parse form fields
+    const fields = req.body || {};
+
+    // Normalize/convert primitives
+    const updateData = {
+      properttyType: fields.properttyType ?? property.properttyType,
+      address: fields.address ?? property.address,
+      state: fields.state ?? property.state,
+      city: fields.city ?? property.city,
+      postalCode: fields.postalCode ?? property.postalCode,
+      phone: fields.phone ?? property.phone,
+      email: fields.email ?? property.email,
+      rent: fields.rent ?? property.rent, // now String
+      deposit: fields.deposit ?? property.deposit,
+      availabilityMonth: fields.availabilityMonth ?? property.availabilityMonth,
+      availabilityDay: fields.availabilityDay ?? property.availabilityDay,
+      heading: fields.heading ?? property.heading,
+    };
+
+    // Existing images can be provided as JSON string or comma-separated
+    let existing = property.roomImages || [];
+    if (typeof fields.existingImages === 'string') {
+      try {
+        const parsed = JSON.parse(fields.existingImages);
+        if (Array.isArray(parsed)) existing = parsed.filter(Boolean);
+      } catch {
+        existing = fields.existingImages.split(',').map(s => s.trim()).filter(Boolean);
+      }
+    }
+
+    // Newly uploaded files from multer (Cloudinary URLs)
+    const uploaded = (req.files || []).map(f => f.path || f.secure_url).filter(Boolean);
+
+    // Merge images
+    const mergedImages = [...existing, ...uploaded];
+    updateData.roomImages = mergedImages;
+
     const updatedProperty = await Property.findByIdAndUpdate(
       propertyId,
       updateData,

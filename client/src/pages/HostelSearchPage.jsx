@@ -183,33 +183,78 @@ const HostelSearchPage = () => {
   useEffect(() => {
     const fetchProperties = async () => {
       try {
-        const res = await fetch(`${backendurl}/api/property/all-properties`);
-        const data = await res.json();
-        const list = Array.isArray(data?.properties) ? data.properties : [];
+        const q = (city || "").trim();
+        const url = q
+          ? `${backendurl}/api/property/all-properties?q=${encodeURIComponent(q)}`
+          : `${backendurl}/api/property/all-properties`;
+        let res = await fetch(url);
+        let data = await res.json();
+        let list = Array.isArray(data?.properties) ? data.properties : [];
 
-        // Filter by city first (query param)
-        const byCity = city
-          ? list.filter(
-              (p) =>
-                (p.city && p.city.toLowerCase().includes(city.toLowerCase())) ||
-                (p.state && p.state.toLowerCase().includes(city.toLowerCase())) ||
-                (p.address && p.address.toLowerCase().includes(city.toLowerCase()))
-            )
+        if (list.length === 0 && q) {
+          // Fallback: include all statuses to aid debugging/data visibility
+          const fallbackUrl = `${backendurl}/api/property/all-properties?all=1&q=${encodeURIComponent(q)}`;
+          res = await fetch(fallbackUrl);
+          data = await res.json();
+          list = Array.isArray(data?.properties) ? data.properties : [];
+        }
+
+        // Client-side normalization and prioritization (kept from earlier improvement)
+        const normalize = (s = "") => (s || "")
+          .toString()
+          .toLowerCase()
+          .replace(/[^a-z0-9\s]/g, " ")
+          .replace(/\s+/g, " ")
+          .trim();
+        const tokens = (s = "") => normalize(s).split(" ").filter(Boolean);
+        const initials = (s = "") => tokens(s).map(t => t[0]).join("");
+
+        const needle = normalize(q);
+        const byQuery = needle
+          ? list.filter((p) => {
+              const fields = [p.city, p.state, p.address, p.heading].map((x) => x || "");
+              const includesMatch = fields.some((f) => normalize(f).includes(needle));
+              if (includesMatch) return true;
+              const tokenPrefix = fields.some((f) => tokens(f).some((t) => t.startsWith(needle)));
+              if (tokenPrefix) return true;
+              const initialsMatch = fields.some((f) => initials(f).startsWith(needle));
+              return initialsMatch;
+            })
           : list;
 
-        setProperties(byCity);
+        const prioritized = byQuery.sort((a, b) => {
+          const aStr = normalize(`${a.city || ''} ${a.state || ''} ${a.address || ''} ${a.heading || ''}`);
+          const bStr = normalize(`${b.city || ''} ${b.state || ''} ${b.address || ''} ${b.heading || ''}`);
+          const aExact = aStr.split(" ").includes(needle);
+          const bExact = bStr.split(" ").includes(needle);
+          if (aExact !== bExact) return aExact ? -1 : 1;
+          const aStarts = aStr.startsWith(needle);
+          const bStarts = bStr.startsWith(needle);
+          if (aStarts !== bStarts) return aStarts ? -1 : 1;
+          const aTokenStart = aStr.split(" ").some((t) => t.startsWith(needle));
+          const bTokenStart = bStr.split(" ").some((t) => t.startsWith(needle));
+          if (aTokenStart !== bTokenStart) return aTokenStart ? -1 : 1;
+          return aStr.localeCompare(bStr);
+        });
 
-        // Center map on first result for city
-        if (byCity.length) {
-          const p0 = byCity[0];
-          const lat =
-            typeof p0.latitude === "string" ? parseFloat(p0.latitude) : p0.latitude;
-          const lng =
-            typeof p0.longitude === "string" ? parseFloat(p0.longitude) : p0.longitude;
-          if (Number.isFinite(lat) && Number.isFinite(lng)) setMapCenter([lat, lng]);
+        setProperties(prioritized);
+
+        // Center map on first result for query or default if none
+        if (prioritized.length) {
+          const p0 = prioritized[0];
+          const lat = typeof p0.latitude === "string" ? parseFloat(p0.latitude) : p0.latitude;
+          const lng = typeof p0.longitude === "string" ? parseFloat(p0.longitude) : p0.longitude;
+          if (Number.isFinite(lat) && Number.isFinite(lng)) {
+            setMapCenter([lat, lng]);
+          } else {
+            setMapCenter([19.076, 72.8777]); // Default: Mumbai
+          }
+        } else {
+          setMapCenter([19.076, 72.8777]);
         }
       } catch (e) {
         console.error("Failed to load properties", e);
+        setMapCenter([19.076, 72.8777]);
       }
     };
     fetchProperties();

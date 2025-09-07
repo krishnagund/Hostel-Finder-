@@ -13,7 +13,7 @@ const propertySchema = new mongoose.Schema({
   postalCode: {type : String,required : true},
   phone: {type : String,required : true},
   email: {type : String,required : true},
-  rent: {type : Number,required : true},
+  rent: {type : String,required : true},
   deposit: {type : String,required : true},
   availabilityMonth: {type : String,required : true},
   availabilityDay: {type : Number,required : true},
