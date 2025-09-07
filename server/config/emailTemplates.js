@@ -968,7 +968,7 @@ export const PROPERTY_APPROVED_TEMPLATE = `
                   </div>
                   
                   <div style="text-align: center; margin: 30px 0;">
-                    <a href="{{propertyUrl}}" class="cta-button">View Your Property</a>
+                    <a href="https://hostel-finder-frontend.onrender.com" class="cta-button">View Your Property</a>
                   </div>
                   
                   <p style="margin: 20px 0 0 0; font-size: 14px; color: #64748b;">
