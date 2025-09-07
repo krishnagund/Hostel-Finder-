@@ -1,153 +1,94 @@
 import { useContext, useState} from "react";
-import { NavLink, Outlet, useNavigate, useLocation } from "react-router-dom";
+import { Outlet, useNavigate, useLocation } from "react-router-dom";
 import { AppContext } from "../context/Appcontext";
 import { assets } from "../assets/assets";
-import { FaBars, FaTimes, FaUserCircle } from "react-icons/fa";
+import AdminNavbar from "../components/AdminNavbar";
 
 export default function AdminDashboard() {
-  const { logout, isLoggedin, userData } = useContext(AppContext);
   const navigate = useNavigate();
   const location = useLocation(); // to check current route
-  const [menuOpen, setMenuOpen] = useState(false);
-  const [profileOpen, setProfileOpen] = useState(false);
-
-  const handleLogout = async () => {
-    await logout();
-    navigate("/login");
-  };
 
   // Check if on main /admin path
   const isBaseAdmin = location.pathname === "/admin";
 
   return (
     <div className="min-h-screen flex flex-col bg-gray-50">
-      {/* Navbar */}
-      <nav className="flex justify-between items-center px-6 sm:px-8 py-4 shadow-md bg-white relative">
-        {/* Logo */}
-        <div
-          className="flex items-center space-x-2 text-2xl sm:text-3xl font-bold cursor-pointer"
-          onClick={() => navigate("/admin")}
-        >
-          <img
-            src={assets.logo1}
-            alt="Hostel Finder Logo"
-            className="h-12 w-12 sm:h-16 sm:w-16 object-contain"
-          />
-          <span className="text-gray-800">Admin</span>
-          <span className="text-[#3A2C99] italic">Panel</span>
-        </div>
-
-        {/* Desktop Menu */}
-        <div className="hidden md:flex items-center gap-6">
-          <NavLink
-            to="/admin/stats"
-            className={({ isActive }) =>
-              `hover:text-[#3A2C99] ${isActive ? "font-semibold text-[#3A2C99]" : ""}`
-            }
-          >
-            Stats
-          </NavLink>
-          <NavLink
-            to="/admin/users"
-            className={({ isActive }) =>
-              `hover:text-[#3A2C99] ${isActive ? "font-semibold text-[#3A2C99]" : ""}`
-            }
-          >
-            Users
-          </NavLink>
-          <NavLink
-            to="/admin/properties"
-            className={({ isActive }) =>
-              `hover:text-[#3A2C99] ${isActive ? "font-semibold text-[#3A2C99]" : ""}`
-            }
-          >
-            Properties
-          </NavLink>
-
-          {/* Profile / Logout */}
-          {isLoggedin && (
-            <div className="relative">
-              <button
-                onClick={() => setProfileOpen(!profileOpen)}
-                className="flex items-center text-gray-700 hover:text-[#3A2C99]"
-              >
-                <FaUserCircle size={28} />
-              </button>
-              {profileOpen && (
-                <div className="absolute right-0 mt-2 w-40 bg-white shadow-md rounded-md py-2 z-20">
-                  <p className="px-4 py-2 text-sm text-gray-600 border-b">
-                    {userData?.name || "Admin"}
-                  </p>
-                  <button
-                    onClick={handleLogout}
-                    className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-gray-100"
-                  >
-                    Logout
-                  </button>
-                </div>
-              )}
-            </div>
-          )}
-        </div>
-
-        {/* Mobile Menu Toggle */}
-        <div className="md:hidden">
-          <button
-            onClick={() => setMenuOpen(!menuOpen)}
-            className="text-2xl text-[#3A2C99]"
-          >
-            {menuOpen ? <FaTimes /> : <FaBars />}
-          </button>
-        </div>
-
-        {/* Mobile Dropdown */}
-        {menuOpen && (
-          <div className="absolute top-full right-0 bg-white shadow-md flex flex-col gap-3 px-6 py-4 w-48 z-20 md:hidden">
-            <NavLink
-              to="/admin/stats"
-              onClick={() => setMenuOpen(false)}
-              className="hover:text-[#3A2C99]"
-            >
-              Stats
-            </NavLink>
-            <NavLink
-              to="/admin/users"
-              onClick={() => setMenuOpen(false)}
-              className="hover:text-[#3A2C99]"
-            >
-              Users
-            </NavLink>
-            <NavLink
-              to="/admin/properties"
-              onClick={() => setMenuOpen(false)}
-              className="hover:text-[#3A2C99]"
-            >
-              Properties
-            </NavLink>
-
-            {isLoggedin && (
-              <button
-                onClick={() => {
-                  handleLogout();
-                  setMenuOpen(false);
-                }}
-                className="text-red-600 hover:bg-gray-100 py-2 rounded"
-              >
-                Logout
-              </button>
-            )}
-          </div>
-        )}
-      </nav>
+      {/* Shared Admin Navbar */}
+      <AdminNavbar />
 
       {/* Main content */}
-      <main className="flex-1 p-6 flex items-center justify-center">
+      <main className="flex-1 p-4 sm:p-6">
         {isBaseAdmin ? (
-          <img
-            src={assets.admin}
-            alt="Admin Sticker"
-            className="max-w-xs sm:max-w-sm md:max-w-md lg:max-w-lg w-full h-auto object-contain"
-          />
+          <div className="max-w-6xl mx-auto">
+            {/* Welcome Section */}
+            <div className="text-center mb-8">
+              <div className="flex flex-col md:flex-row items-center justify-center mb-6">
+                <img
+                  src={assets.admin}
+                  alt="Admin Sticker"
+                  className="w-24 h-24 sm:w-32 sm:h-32 md:w-48 md:h-48 object-contain mb-4 md:mb-0 md:mr-6"
+                />
+                <div>
+                  <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-800 mb-2">
+                    Welcome Back, Admin 👋
+                  </h1>
+                  <p className="text-gray-600 text-sm sm:text-base">
+                    Manage your hostel finder platform efficiently
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* Quick Stats Preview */}
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+              <div className="bg-white rounded-lg p-4 text-center shadow-sm">
+                <div className="text-2xl font-bold text-indigo-600">📊</div>
+                <div className="text-sm text-gray-600 mt-1">Analytics</div>
+              </div>
+              <div className="bg-white rounded-lg p-4 text-center shadow-sm">
+                <div className="text-2xl font-bold text-green-600">👥</div>
+                <div className="text-sm text-gray-600 mt-1">Users</div>
+              </div>
+              <div className="bg-white rounded-lg p-4 text-center shadow-sm">
+                <div className="text-2xl font-bold text-blue-600">🏠</div>
+                <div className="text-sm text-gray-600 mt-1">Properties</div>
+              </div>
+              <div className="bg-white rounded-lg p-4 text-center shadow-sm">
+                <div className="text-2xl font-bold text-purple-600">⚙️</div>
+                <div className="text-sm text-gray-600 mt-1">Settings</div>
+              </div>
+            </div>
+
+            {/* Quick Actions */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <button
+                onClick={() => navigate('/admin/stats')}
+                className="bg-gradient-to-r from-indigo-500 to-purple-600 text-white p-6 rounded-lg shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1"
+              >
+                <div className="text-3xl mb-2">📈</div>
+                <h3 className="text-lg font-semibold mb-2">View Analytics</h3>
+                <p className="text-sm opacity-90">Check platform statistics and insights</p>
+              </button>
+              
+              <button
+                onClick={() => navigate('/admin/users')}
+                className="bg-gradient-to-r from-green-500 to-teal-600 text-white p-6 rounded-lg shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1"
+              >
+                <div className="text-3xl mb-2">👥</div>
+                <h3 className="text-lg font-semibold mb-2">Manage Users</h3>
+                <p className="text-sm opacity-90">Control user accounts and permissions</p>
+              </button>
+              
+              <button
+                onClick={() => navigate('/admin/properties')}
+                className="bg-gradient-to-r from-blue-500 to-cyan-600 text-white p-6 rounded-lg shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1"
+              >
+                <div className="text-3xl mb-2">🏠</div>
+                <h3 className="text-lg font-semibold mb-2">Review Properties</h3>
+                <p className="text-sm opacity-90">Approve and manage property listings</p>
+              </button>
+            </div>
+          </div>
         ) : (
           <Outlet />
         )}

@@ -12,6 +12,9 @@ import {
   rejectProperty,
   deleteProperty,
   toggleFeatureProperty,
+  getPropertyDetails,
+  getNotificationCount,
+  markNotificationsSeen,
 } from "../controllers/adminController.js";
 
 const router = express.Router();
@@ -30,9 +33,14 @@ router.delete("/users/:id", deleteUser);
 
 // Properties
 router.get("/properties", listProperties);               // ?status=pending|approved|rejected
+router.get("/properties/:id", getPropertyDetails);      // Get detailed property info for admin review
 router.put("/properties/:id/approve", approveProperty);
 router.put("/properties/:id/reject", rejectProperty);
 router.put("/properties/:id/feature", toggleFeatureProperty);
 router.delete("/properties/:id", deleteProperty);
+
+// Notifications
+router.get("/notifications/count", getNotificationCount);
+router.put("/notifications/mark-seen", markNotificationsSeen);
 
 export default router;

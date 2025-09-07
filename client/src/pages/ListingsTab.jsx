@@ -4,6 +4,7 @@ import RenterInfo from "../components/RenterInfo";
 import TranslatedText from "../components/TranslatedText";
 import { toast } from "react-toastify";
 import axios from "axios";
+import { CheckCircle, Clock, XCircle, AlertCircle } from "lucide-react";
 
 const ListingsTab = ({ properties, onPropertyUpdate, onEditProperty }) => {
   const { backendurl } = useContext(AppContext);
@@ -57,9 +58,36 @@ const ListingsTab = ({ properties, onPropertyUpdate, onEditProperty }) => {
     }
   };
 
-  const handleUpdateProperty = (property) => {
-    if (onEditProperty) {
-      onEditProperty(property);
+  const getStatusInfo = (status) => {
+    switch (status) {
+      case 'approved':
+        return {
+          icon: <CheckCircle size={16} />,
+          text: 'Approved',
+          color: 'bg-green-100 text-green-800',
+          description: 'Your property is live and visible to students'
+        };
+      case 'pending':
+        return {
+          icon: <Clock size={16} />,
+          text: 'Pending Review',
+          color: 'bg-yellow-100 text-yellow-800',
+          description: 'Your property is under admin review'
+        };
+      case 'rejected':
+        return {
+          icon: <XCircle size={16} />,
+          text: 'Rejected',
+          color: 'bg-red-100 text-red-800',
+          description: 'Your property needs attention'
+        };
+      default:
+        return {
+          icon: <AlertCircle size={16} />,
+          text: 'Unknown',
+          color: 'bg-gray-100 text-gray-800',
+          description: 'Status unknown'
+        };
     }
   };
 
@@ -86,52 +114,71 @@ const ListingsTab = ({ properties, onPropertyUpdate, onEditProperty }) => {
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-          {validProperties.map((property) => (
-            <div
-              key={property._id}
-              className="bg-white rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden border border-gray-100 group"
-            >
-              {/* Availability Status Badge */}
-              <div className="relative">
-                {property.roomImages && property.roomImages.length > 0 && (
-                  <img
-                    src={
-                      typeof property.roomImages[0] === "string"
-                        ? property.roomImages[0].startsWith("http")
-                          ? property.roomImages[0]
-                          : `${backendurl}/uploads/${property.roomImages[0]}`
-                        : property.roomImages[0]?.url
-                    }
-                    alt="Property"
-                    className="w-full h-48 object-cover"
-                  />
-                )}
-                <div className="absolute top-3 right-3">
-                  <span
-                    className={`px-3 py-1 rounded-full text-xs font-semibold ${
-                      property.isAvailable !== false
-                        ? 'bg-green-500 text-white'
-                        : 'bg-red-500 text-white'
-                    }`}
-                  >
-                    {property.isAvailable !== false ? 'Available' : 'Unavailable'}
-                  </span>
-                </div>
-              </div>
-
-              {/* Property Details */}
-              <div className="p-6">
-                <div className="flex justify-between items-start mb-3">
-                  <h3 className="text-lg font-bold text-gray-800 line-clamp-1">
-                    {property.heading || (
-                      property.properttyType ? (
-                        <TranslatedText text={property.properttyType} />
-                      ) : (
-                        <RenterInfo text="Room for Rent" />
-                      )
+          {validProperties.map((property) => {
+            const statusInfo = getStatusInfo(property.status);
+            
+            return (
+              <div
+                key={property._id}
+                className="bg-white rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden border border-gray-100 group"
+              >
+                {/* Property Images */}
+                <div className="relative">
+                  {property.roomImages && property.roomImages.length > 0 && (
+                    <img
+                      src={
+                        typeof property.roomImages[0] === "string"
+                          ? property.roomImages[0].startsWith("http")
+                            ? property.roomImages[0]
+                            : `${backendurl}/uploads/${property.roomImages[0]}`
+                          : property.roomImages[0]?.url
+                      }
+                      alt="Property"
+                      className="w-full h-48 object-cover"
+                    />
+                  )}
+                  
+                  {/* Status Badge */}
+                  <div className="absolute top-3 right-3 flex flex-col gap-2">
+                    <span className={`px-3 py-1 rounded-full text-xs font-semibold flex items-center gap-1 ${statusInfo.color}`}>
+                      {statusInfo.icon}
+                      {statusInfo.text}
+                    </span>
+                    
+                    {property.isAvailable !== false && property.status === 'approved' && (
+                      <span className="px-3 py-1 rounded-full text-xs font-semibold bg-green-500 text-white">
+                        Available
+                      </span>
                     )}
-                  </h3>
+                  </div>
                 </div>
+
+                {/* Property Details */}
+                <div className="p-6">
+                  <div className="flex justify-between items-start mb-3">
+                    <h3 className="text-lg font-bold text-gray-800 line-clamp-1">
+                      {property.heading || (
+                        property.properttyType ? (
+                          <TranslatedText text={property.properttyType} />
+                        ) : (
+                          <RenterInfo text="Room for Rent" />
+                        )
+                      )}
+                    </h3>
+                  </div>
+
+                  {/* Status Description */}
+                  <div className="mb-4 p-3 bg-gray-50 rounded-lg">
+                    <div className="flex items-center gap-2 text-sm text-gray-600">
+                      {statusInfo.icon}
+                      <span>{statusInfo.description}</span>
+                    </div>
+                    {property.rejectionReason && (
+                      <div className="mt-2 p-2 bg-red-50 border border-red-200 rounded text-sm text-red-700">
+                        <strong>Rejection Reason:</strong> {property.rejectionReason}
+                      </div>
+                    )}
+                  </div>
 
                 <div className="space-y-2 mb-4">
                   <div className="flex justify-between items-center">
@@ -194,30 +241,32 @@ const ListingsTab = ({ properties, onPropertyUpdate, onEditProperty }) => {
 
                 {/* Action Buttons */}
                 <div className="flex gap-2">
-                  <button
-                    onClick={() => handleToggleAvailability(property._id, property.isAvailable)}
-                    disabled={loadingStates[property._id]}
-                    className={`flex-1 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
-                      property.isAvailable !== false
-                        ? 'bg-orange-100 text-orange-700 hover:bg-orange-200'
-                        : 'bg-green-100 text-green-700 hover:bg-green-200'
-                    } ${loadingStates[property._id] ? 'opacity-50 cursor-not-allowed' : ''}`}
-                  >
-                    {loadingStates[property._id] ? (
-                      <div className="flex items-center justify-center">
-                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-current mr-2"></div>
-                        <RenterInfo text="Updating..." />
-                      </div>
-                    ) : (
-                      <>
-                        {property.isAvailable !== false ? (
-                          <RenterInfo text="Mark Unavailable" />
-                        ) : (
-                          <RenterInfo text="Mark Available" />
-                        )}
-                      </>
-                    )}
-                  </button>
+                  {property.status === 'approved' && (
+                    <button
+                      onClick={() => handleToggleAvailability(property._id, property.isAvailable)}
+                      disabled={loadingStates[property._id]}
+                      className={`flex-1 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+                        property.isAvailable !== false
+                          ? 'bg-orange-100 text-orange-700 hover:bg-orange-200'
+                          : 'bg-green-100 text-green-700 hover:bg-green-200'
+                      } ${loadingStates[property._id] ? 'opacity-50 cursor-not-allowed' : ''}`}
+                    >
+                      {loadingStates[property._id] ? (
+                        <div className="flex items-center justify-center">
+                          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-current mr-2"></div>
+                          <RenterInfo text="Updating..." />
+                        </div>
+                      ) : (
+                        <>
+                          {property.isAvailable !== false ? (
+                            <RenterInfo text="Mark Unavailable" />
+                          ) : (
+                            <RenterInfo text="Mark Available" />
+                          )}
+                        </>
+                      )}
+                    </button>
+                  )}
 
                   <button
                     onClick={() => handleUpdateProperty(property)}
@@ -236,7 +285,8 @@ const ListingsTab = ({ properties, onPropertyUpdate, onEditProperty }) => {
                 </div>
               </div>
             </div>
-          ))}
+          );
+        })}
         </div>
       )}
     </div>

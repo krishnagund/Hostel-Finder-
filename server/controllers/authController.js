@@ -3,7 +3,7 @@
 import bcrypt from 'bcryptjs'; // used for hashing passwords
 import jwt from 'jsonwebtoken'; // used for creating and verifying JSON Web Tokens
 import userModel from '../models/userModel.js'; // importing the userModel to interact with the user collection in the MongoDB database
-import transporter from '../config/nodemailer.js';
+import transporter, { EMAIL_CONFIG } from '../config/nodemailer.js';
 import { EMAIL_VERIFY_TEMPLATE,PASSWORD_RESET_TEMPLATE } from '../config/emailTemplates.js'; // importing the nodemailer transporter to send emails
 
 export const register = async(req,res) =>{
@@ -47,12 +47,23 @@ user.verifyOtpExpireAt = Date.now() + 24*60*60*1000; // 24 hours validity
 await user.save();
 
 const mailOptions = {
-  from: process.env.SENDER_EMAIL,
+  from: `"${EMAIL_CONFIG.from.name}" <${EMAIL_CONFIG.from.address}>`, // professional sender name and email
   to: user.email,
-  subject: 'Verify Your Account',
+  subject: 'Verify Your Email - Hostel Finder', // professional subject
+  replyTo: EMAIL_CONFIG.replyTo, // professional reply-to address
   html: EMAIL_VERIFY_TEMPLATE
     .replace("{{otp}}", otp)
-    .replace("{{email}}", user.email),
+    .replace("{{email}}", user.email)
+    .replace("{{website}}", EMAIL_CONFIG.company.website)
+    .replace("{{supportEmail}}", EMAIL_CONFIG.company.supportEmail)
+    .replace("{{logo}}", EMAIL_CONFIG.company.logo),
+  // Additional headers for better deliverability
+  headers: {
+    'X-Mailer': 'Hostel Finder',
+    'X-Priority': '3',
+    'X-MSMail-Priority': 'Normal',
+    'Importance': 'Normal'
+  }
 };
 
 await transporter.sendMail(mailOptions);
@@ -172,11 +183,23 @@ export const sendVerifyOtp = async(req,res) => {
         await user.save(); // saving the updated user document to the database
 
         const mailOptions = {
-            from: process.env.SENDER_EMAIL, // sender's email address from environment variables
+            from: `"${EMAIL_CONFIG.from.name}" <${EMAIL_CONFIG.from.address}>`, // professional sender name and email
             to: user.email, // recipient's email address
-            subject: 'Verify Your Account', // subject of the email
-            //text: `Your verification OTP is ${otp}. It is valid for 24 hours.`,
-            html : EMAIL_VERIFY_TEMPLATE.replace("{{otp}}",otp).replace("{{email}}",user.email) // plain text body of the email with the OTP
+            subject: 'Verify Your Email - Hostel Finder', // professional subject
+            replyTo: EMAIL_CONFIG.replyTo, // professional reply-to address
+            html: EMAIL_VERIFY_TEMPLATE
+                .replace("{{otp}}", otp)
+                .replace("{{email}}", user.email)
+                .replace("{{website}}", EMAIL_CONFIG.company.website)
+                .replace("{{supportEmail}}", EMAIL_CONFIG.company.supportEmail)
+                .replace("{{logo}}", EMAIL_CONFIG.company.logo),
+            // Additional headers for better deliverability
+            headers: {
+                'X-Mailer': 'Hostel Finder',
+                'X-Priority': '3',
+                'X-MSMail-Priority': 'Normal',
+                'Importance': 'Normal'
+            }
         }
 
         await transporter.sendMail(mailOptions); // sending the email using the transporter object
@@ -261,11 +284,23 @@ export const sendResetOtp = async(req,res) => {
         await user.save(); // saving the updated user document to the database
 
         const mailOptions = {
-            from: process.env.SENDER_EMAIL, // sender's email address from environment variables
+            from: `"${EMAIL_CONFIG.from.name}" <${EMAIL_CONFIG.from.address}>`, // professional sender name and email
             to: user.email, // recipient's email address
-            subject: 'Password reset Otp', // subject of the email
-           // text: `Your OTP for reseting your password is ${otp}. Use this to reset your password.` ,
-            html:PASSWORD_RESET_TEMPLATE.replace("{{otp}}",otp).replace("{{email}}",user.email)
+            subject: 'Reset Your Password - Hostel Finder', // professional subject
+            replyTo: EMAIL_CONFIG.replyTo, // professional reply-to address
+            html: PASSWORD_RESET_TEMPLATE
+                .replace("{{otp}}", otp)
+                .replace("{{email}}", user.email)
+                .replace("{{website}}", EMAIL_CONFIG.company.website)
+                .replace("{{supportEmail}}", EMAIL_CONFIG.company.supportEmail)
+                .replace("{{logo}}", EMAIL_CONFIG.company.logo),
+            // Additional headers for better deliverability
+            headers: {
+                'X-Mailer': 'Hostel Finder',
+                'X-Priority': '3',
+                'X-MSMail-Priority': 'Normal',
+                'Importance': 'Normal'
+            }
         }
 
         await transporter.sendMail(mailOptions); // sending the email using the transporter object

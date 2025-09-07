@@ -25,6 +25,38 @@ const propertySchema = new mongoose.Schema({
     type: Boolean,
     default: true
   },
+  // Property verification status
+  status: {
+    type: String,
+    enum: ['pending', 'approved', 'rejected'],
+    default: 'pending'
+  },
+  // Admin verification details
+  verifiedBy: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'user'
+  },
+  verifiedAt: Date,
+  rejectionReason: String,
+  // Additional fields for better property management
+  description: String,
+  community: String,
+  featured: {
+    type: Boolean,
+    default: false
+  },
+  // Admin notification system
+  adminNotification: {
+    hasNewRequest: {
+      type: Boolean,
+      default: false
+    },
+    notificationSeen: {
+      type: Boolean,
+      default: false
+    },
+    lastNotificationAt: Date
+  }
 }, { timestamps: true });
 
 export default mongoose.model('Property', propertySchema);

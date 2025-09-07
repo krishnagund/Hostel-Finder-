@@ -1,5 +1,8 @@
 import Property from '../models/propertyModel.js';
+import userModel from '../models/userModel.js';
 import { getCoordinatesFromAddress } from '../utils/geocode.js';
+import transporter, { EMAIL_CONFIG } from '../config/nodemailer.js';
+import { PROPERTY_VERIFICATION_REQUEST_TEMPLATE, ADMIN_PROPERTY_REQUEST_TEMPLATE } from '../config/emailTemplates.js';
 
 export const createProperty = async (req, res) => {
   try {
@@ -36,10 +39,90 @@ export const createProperty = async (req, res) => {
       community,
       latitude,
       longitude,
+      // Set admin notification for new property request
+      adminNotification: {
+        hasNewRequest: true,
+        notificationSeen: false,
+        lastNotificationAt: new Date()
+      }
     });
 
     await newProperty.save();
-    res.status(201).json({ success: true, property: newProperty });
+
+    // Send verification request email to property owner
+    try {
+      const owner = await userModel.findById(userId);
+      if (owner && owner.email) {
+        const mailOptions = {
+          from: `"${EMAIL_CONFIG.from.name}" <${EMAIL_CONFIG.from.address}>`,
+          to: owner.email,
+          subject: 'Property Verification Request - Hostel Finder',
+          replyTo: EMAIL_CONFIG.replyTo,
+          html: PROPERTY_VERIFICATION_REQUEST_TEMPLATE
+            .replace("{{ownerName}}", owner.name || 'Property Owner')
+            .replace("{{propertyTitle}}", heading || 'Your Property')
+            .replace("{{propertyLocation}}", `${city}, ${state}`)
+            .replace("{{propertyRent}}", rent)
+            .replace("{{submissionDate}}", new Date().toLocaleDateString())
+            .replace("{{logo}}", EMAIL_CONFIG.company.logo)
+            .replace("{{website}}", EMAIL_CONFIG.company.website)
+            .replace("{{supportEmail}}", EMAIL_CONFIG.company.supportEmail),
+          headers: {
+            'X-Mailer': 'Hostel Finder',
+            'X-Priority': '3',
+            'X-MSMail-Priority': 'Normal',
+            'Importance': 'Normal'
+          }
+        };
+
+        await transporter.sendMail(mailOptions);
+        console.log('✅ Property verification request email sent to:', owner.email);
+      }
+    } catch (emailError) {
+      console.error('❌ Error sending property verification email:', emailError);
+      // Don't fail the property creation if email fails
+    }
+
+    // Send admin notification email
+    try {
+      if (EMAIL_CONFIG.company.adminEmail) {
+        const adminMailOptions = {
+          from: `"${EMAIL_CONFIG.from.name}" <${EMAIL_CONFIG.from.address}>`,
+          to: EMAIL_CONFIG.company.adminEmail,
+          subject: 'New Property Verification Request - Hostel Finder',
+          replyTo: EMAIL_CONFIG.replyTo,
+          html: ADMIN_PROPERTY_REQUEST_TEMPLATE
+            .replace("{{propertyTitle}}", heading || 'New Property Listing')
+            .replace("{{propertyType}}", properttyType)
+            .replace("{{propertyLocation}}", `${city}, ${state}`)
+            .replace("{{propertyRent}}", rent)
+            .replace("{{ownerName}}", owner?.name || 'Property Owner')
+            .replace("{{ownerEmail}}", owner?.email || email)
+            .replace("{{submissionDate}}", new Date().toLocaleDateString())
+            .replace("{{adminPanelUrl}}", EMAIL_CONFIG.company.adminPanelUrl)
+            .replace("{{logo}}", EMAIL_CONFIG.company.logo)
+            .replace("{{website}}", EMAIL_CONFIG.company.website),
+          headers: {
+            'X-Mailer': 'Hostel Finder Admin System',
+            'X-Priority': '1', // High priority for admin notifications
+            'X-MSMail-Priority': 'High',
+            'Importance': 'High'
+          }
+        };
+
+        await transporter.sendMail(adminMailOptions);
+        console.log('✅ Admin notification email sent to:', EMAIL_CONFIG.company.adminEmail);
+      }
+    } catch (adminEmailError) {
+      console.error('❌ Error sending admin notification email:', adminEmailError);
+      // Don't fail the property creation if admin email fails
+    }
+
+    res.status(201).json({ 
+      success: true, 
+      property: newProperty,
+      message: 'Property submitted for verification. It will be visible after admin approval.'
+    });
   }catch (err) {
   console.error("❌ Property creation error:");
   console.dir(err, { depth: null });  // shows nested objects
@@ -63,7 +146,11 @@ export const getUserProperties = async (req, res) => {
 
 export const getAllProperties = async (req, res) => {
   try {
-    const properties = await Property.find().sort({ createdAt: -1 });
+    // Only show approved and available properties to public
+    const properties = await Property.find({ 
+      status: 'approved',
+      isAvailable: true 
+    }).sort({ createdAt: -1 });
     res.status(200).json({ success: true, properties });
   } catch (err) {
     res.status(500).json({ message: 'Error fetching all properties', error: err.message });
@@ -75,8 +162,11 @@ export const getPropertiesByCity = async (req, res) => {
   const city = req.params.city;
 
   try {
+    // Only show approved and available properties by city
     const properties = await Property.find({
-      city: { $regex: new RegExp(`^${city}$`, 'i') } 
+      city: { $regex: new RegExp(`^${city}$`, 'i') },
+      status: 'approved',
+      isAvailable: true
     });
 
     res.status(200).json({ success: true, properties });
