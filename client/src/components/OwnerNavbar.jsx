@@ -89,15 +89,15 @@ const OwnerNavbar = ({ setActiveTab, activeTab, setShowListingForm, setSelectedP
         <div className="md:hidden">
           <button
             onClick={() => setMenuOpen(!menuOpen)}
-            className="text-2xl text-[#3A2C99]"
+            className="text-2xl text-[#3A2C99] transition-all duration-300 ease-in-out hover:scale-110"
           >
-            {menuOpen ? <X size={24} /> : <Menu size={24} />}
+            {menuOpen ? <X size={24} className="rotate-180 transition-transform duration-300" /> : <Menu size={24} className="transition-transform duration-300" />}
           </button>
         </div>
 
         {/* Mobile Dropdown */}
         {menuOpen && (
-          <div className="absolute top-full right-0 bg-white shadow-md flex flex-col gap-3 px-6 py-4 w-48 z-20 md:hidden">
+          <div className="absolute top-full right-0 bg-white shadow-md flex flex-col gap-3 px-6 py-4 w-48 z-20 md:hidden animate-in slide-in-from-top-2 duration-300">
             <LanguageToggle />
             <button
               onClick={() => {

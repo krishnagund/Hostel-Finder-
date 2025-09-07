@@ -276,7 +276,10 @@ const StudentProfile = () => {
       {/* ===== Navbar ===== */}
       <nav className="flex justify-between items-center px-4 sm:px-8 py-4 sm:py-6 shadow-md bg-white">
         {/* Logo */}
-        <div className="flex items-center space-x-2 text-2xl sm:text-3xl font-bold">
+        <div 
+          className="flex items-center space-x-2 text-2xl sm:text-3xl font-bold cursor-pointer"
+          onClick={() => navigate("/")}
+        >
           <img
             src={assets.logo1}
             alt="Hostel Finder Logo"
@@ -317,15 +320,6 @@ const StudentProfile = () => {
                   className="px-4 py-2 hover:bg-gray-100 text-left transition-colors"
                 >
                   <RenterInfo text="My Faves" />
-                </button>
-                <button
-                  onClick={() => {
-                    navigate("/saved-searches");
-                    setProfileOpen(false);
-                  }}
-                  className="px-4 py-2 hover:bg-gray-100 text-left transition-colors"
-                >
-                  <RenterInfo text="Saved Searches" />
                 </button>
                 <button
                   onClick={() => {
@@ -391,15 +385,6 @@ const StudentProfile = () => {
                   className="px-4 py-2 hover:bg-gray-100 text-left transition-colors"
                 >
                   <RenterInfo text="My Faves" />
-                </button>
-                <button
-                  onClick={() => {
-                    navigate("/saved-searches");
-                    setMobileProfileOpen(false);
-                  }}
-                  className="px-4 py-2 hover:bg-gray-100 text-left transition-colors"
-                >
-                  <RenterInfo text="Saved Searches" />
                 </button>
                 <button
                   onClick={() => {
@@ -1035,7 +1020,7 @@ const StudentProfile = () => {
                 <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
                   <button
                     onClick={refreshMessages}
-                    className="bg-blue-500 text-white px-4 py-2.5 rounded-lg text-sm hover:bg-blue-600 transition font-medium"
+                    className="text-white bg-[#3A2C99] px-4 py-2 rounded-md hover:bg-white hover:text-black transition"
                   >
                     <RenterInfo text="Refresh" />
                   </button>

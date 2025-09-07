@@ -12,18 +12,23 @@ import { FaUser } from "react-icons/fa";
 const FavoriteProperties = () => {
   const [favorites, setFavorites] = useState([]);
   const [selectedProperty, setSelectedProperty] = useState(null);
-  const { backendurl } = useContext(AppContext);
+  const { backendurl, logout } = useContext(AppContext);
   const navigate = useNavigate();
   const location = useLocation();
 
   // dropdown state
   const [profileOpen, setProfileOpen] = useState(false);
+  const [mobileProfileOpen, setMobileProfileOpen] = useState(false);
   const profileRef = useRef(null);
+  const mobileProfileRef = useRef(null);
 
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (profileRef.current && !profileRef.current.contains(event.target)) {
         setProfileOpen(false);
+      }
+      if (mobileProfileRef.current && !mobileProfileRef.current.contains(event.target)) {
+        setMobileProfileOpen(false);
       }
     };
     document.addEventListener("mousedown", handleClickOutside);
@@ -51,7 +56,7 @@ const FavoriteProperties = () => {
   return (
     <div className="bg-gray-50 min-h-screen font-sans">
       {/* ===== Navbar ===== */}
-      <nav className="flex flex-wrap justify-between items-center px-4 sm:px-8 py-4 sm:py-6 bg-gray-50">
+      <nav className="flex justify-between items-center px-4 sm:px-8 py-4 sm:py-6 shadow-md bg-white">
         {/* Logo */}
         <div
           className="flex items-center space-x-2 text-2xl sm:text-3xl font-bold cursor-pointer"
@@ -62,57 +67,48 @@ const FavoriteProperties = () => {
             alt="Hostel Finder Logo"
             className="h-12 w-12 sm:h-16 sm:w-16 object-contain"
           />
-          <span className="text-gray-800">Hostel</span>
-          <span className="text-[#3A2C99] italic">Finder</span>
+          <span className="text-gray-800">
+            <RenterInfo text="Hostel" />
+          </span>
+          <span className="text-[#3A2C99] italic">
+            <RenterInfo text="Finder" />
+          </span>
         </div>
 
-        {/* Right Side */}
-        <div className="flex items-center gap-3">
+        {/* Desktop Navbar Right Section */}
+        <div className="hidden md:flex items-center gap-3">
           {/* Language Toggle */}
           <LanguageToggle />
 
           {/* Divider */}
-          <div className="hidden sm:block h-7 border-l border-[#3A2C99] mx-2" />
+          <div className="h-7 border-l border-[#3A2C99] mx-2" />
 
-          {/* Profile Dropdown */}
+          {/* Profile Dropdown Toggle */}
           <div className="relative" ref={profileRef}>
             <button
               onClick={() => setProfileOpen(!profileOpen)}
-              className="flex items-center justify-center w-10 h-10 rounded-full bg-[#3A2C99] text-white hover:bg-white hover:text-[#3A2C99] transition"
+              className="flex items-center justify-center w-10 h-10 rounded-full bg-[#3A2C99] text-white hover:bg-white hover:text-[#3A2C99] transition z-40"
             >
               <FaUser />
             </button>
 
             {profileOpen && (
-              <div className="absolute right-0 mt-2 w-48 bg-white shadow-md rounded-md flex flex-col z-30">
-                {/* Hide My Faves if already on favorites page */}
-                {location.pathname !== "/favorites" && (
-                  <button
-                    onClick={() => {
-                      navigate("/favorites");
-                      setProfileOpen(false);
-                    }}
-                    className="px-4 py-2 hover:bg-gray-100 text-left"
-                  >
-                    <RenterInfo text="My Faves" />
-                  </button>
-                )}
-
+              <div className="absolute right-0 mt-2 w-48 bg-white shadow-lg rounded-md flex flex-col z-50 border border-gray-200">
                 <button
                   onClick={() => {
-                    navigate("/saved-searches");
+                    navigate("/favorites");
                     setProfileOpen(false);
                   }}
-                  className="px-4 py-2 hover:bg-gray-100 text-left"
+                  className="px-4 py-2 hover:bg-gray-100 text-left bg-blue-50 transition-colors"
                 >
-                  <RenterInfo text="Saved Searches" />
+                  <RenterInfo text="My Faves" />
                 </button>
                 <button
                   onClick={() => {
                     navigate("/student-profile");
                     setProfileOpen(false);
                   }}
-                  className="px-4 py-2 hover:bg-gray-100 text-left"
+                  className="px-4 py-2 hover:bg-gray-100 text-left transition-colors"
                 >
                   <RenterInfo text="Profile" />
                 </button>
@@ -121,10 +117,81 @@ const FavoriteProperties = () => {
                     navigate("/student-profile?tab=inbox");
                     setProfileOpen(false);
                   }}
-                  className="px-4 py-2 hover:bg-gray-100 text-left"
+                  className="px-4 py-2 hover:bg-gray-100 text-left transition-colors"
                 >
                   <RenterInfo text="Inbox" />
                 </button>
+                <div className="border-t border-gray-200">
+                  <button
+                    onClick={() => {
+                      logout();
+                      setProfileOpen(false);
+                    }}
+                    className="px-4 py-2 hover:bg-gray-100 text-left text-red-600 w-full transition-colors"
+                  >
+                    <RenterInfo text="Sign Out" />
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Mobile Navbar Right Section */}
+        <div className="md:hidden flex items-center gap-2">
+          <div className="relative" ref={mobileProfileRef}>
+            <button
+              onClick={() => setMobileProfileOpen(!mobileProfileOpen)}
+              className="flex items-center justify-center w-8 h-8 rounded-full bg-[#3A2C99] text-white hover:bg-white hover:text-[#3A2C99] transition z-40"
+            >
+              <FaUser size={16} />
+            </button>
+
+            {mobileProfileOpen && (
+              <div className="absolute right-0 mt-2 w-48 bg-white shadow-lg rounded-md flex flex-col z-50 border border-gray-200">
+                {/* Language Toggle in Mobile Dropdown */}
+                <div className="px-4 py-2 border-b border-gray-200">
+                  <LanguageToggle />
+                </div>
+                
+                <button
+                  onClick={() => {
+                    navigate("/favorites");
+                    setMobileProfileOpen(false);
+                  }}
+                  className="px-4 py-2 hover:bg-gray-100 text-left bg-blue-50 transition-colors"
+                >
+                  <RenterInfo text="My Faves" />
+                </button>
+                <button
+                  onClick={() => {
+                    navigate("/student-profile");
+                    setMobileProfileOpen(false);
+                  }}
+                  className="px-4 py-2 hover:bg-gray-100 text-left transition-colors"
+                >
+                  <RenterInfo text="Profile" />
+                </button>
+                <button
+                  onClick={() => {
+                    navigate("/student-profile?tab=inbox");
+                    setMobileProfileOpen(false);
+                  }}
+                  className="px-4 py-2 hover:bg-gray-100 text-left transition-colors"
+                >
+                  <RenterInfo text="Inbox" />
+                </button>
+                <div className="border-t border-gray-200">
+                  <button
+                    onClick={() => {
+                      logout();
+                      setMobileProfileOpen(false);
+                    }}
+                    className="px-4 py-2 hover:bg-gray-100 text-left text-red-600 w-full transition-colors"
+                  >
+                    <RenterInfo text="Sign Out" />
+                  </button>
+                </div>
               </div>
             )}
           </div>

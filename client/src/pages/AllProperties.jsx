@@ -4,34 +4,29 @@ import { assets } from "../assets/assets";
 import { useNavigate } from "react-router-dom";
 import LoginModal from "./LoginModal";
 import PropertyDetailsModal from "./PropertyDetailsModal";
-import { FaUser, FaBars } from "react-icons/fa"; // ✅ for profile + hamburger
+import { FaUser, FaBars, FaTimes } from "react-icons/fa";
 import AvailabilityBadge from "../components/AvailabilityBadge";
+import FavoriteButton from "../components/FavoriteButton";
+import { useFavorites } from "../hooks/useFavorites";
+import LanguageToggle from "../components/LanguageToggle";
+import RenterInfo from "../components/RenterInfo";
 
 const AllProperties = () => {
   const navigate = useNavigate();
   const [showLoginModal, setShowLoginModal] = useState(false);
   const [authState, setAuthState] = useState("Login");
-  const [favorites, setFavorites] = useState([]);
-  const { backendurl, isLoggedin } = useContext(AppContext);
+  const { backendurl, isLoggedin, logout } = useContext(AppContext);
   const [properties, setProperties] = useState([]);
   const [selectedProperty, setSelectedProperty] = useState(null);
 
-  const [menuOpen, setMenuOpen] = useState(false); // ✅ mobile menu
-  const [profileOpen, setProfileOpen] = useState(false); // ✅ profile dropdown
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [profileOpen, setProfileOpen] = useState(false);
+  const [mobileProfileOpen, setMobileProfileOpen] = useState(false);
   const profileRef = useRef(null);
-
-  const fetchFavorites = async () => {
-    if (!isLoggedin) return;
-    try {
-      const res = await fetch(`${backendurl}/api/user/favorites`, {
-        credentials: "include",
-      });
-      const data = await res.json();
-      setFavorites(data.favorites.map((fav) => fav._id));
-    } catch (err) {
-      console.error("Error fetching favorites", err);
-    }
-  };
+  const mobileProfileRef = useRef(null);
+  
+  // Use the custom favorites hook
+  const { isFavorited, toggleFavorite } = useFavorites();
 
   const fetchProperties = async () => {
     try {
@@ -47,16 +42,18 @@ const AllProperties = () => {
 
   useEffect(() => {
     fetchProperties();
-    fetchFavorites();
 
     const handleClickOutside = (e) => {
       if (profileRef.current && !profileRef.current.contains(e.target)) {
         setProfileOpen(false);
       }
+      if (mobileProfileRef.current && !mobileProfileRef.current.contains(e.target)) {
+        setMobileProfileOpen(false);
+      }
     };
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, [isLoggedin]);
+  }, []);
 
   const handleFavoriteToggle = async (propertyId) => {
     if (!isLoggedin) {
@@ -66,15 +63,7 @@ const AllProperties = () => {
     }
 
     try {
-      const res = await fetch(`${backendurl}/api/user/favorites/${propertyId}`, {
-        method: "POST",
-        credentials: "include",
-      });
-
-      const data = await res.json();
-      if (data.favorites) {
-        setFavorites(data.favorites);
-      }
+      await toggleFavorite(propertyId);
     } catch (err) {
       console.error("Error toggling favorite", err);
     }
@@ -83,129 +72,197 @@ const AllProperties = () => {
   return (
     <div className="bg-gray-50 min-h-screen font-sans">
       {/* ===== Navbar ===== */}
-      <nav className="flex justify-between items-center px-4 sm:px-8 py-4 bg-gray-50 relative">
+      <nav className="flex justify-between items-center px-4 sm:px-8 py-4 sm:py-6 shadow-md bg-white">
         {/* Logo */}
-        <div className="flex items-center space-x-2 text-2xl sm:text-3xl font-bold">
+        <div 
+          className="flex items-center space-x-2 text-2xl sm:text-3xl font-bold cursor-pointer"
+          onClick={() => navigate("/")}
+        >
           <img
             src={assets.logo1}
             alt="Hostel Finder Logo"
             className="h-12 w-12 sm:h-16 sm:w-16 object-contain"
           />
-          <span className="text-gray-800">Hostel</span>
-          <span className="text-[#3A2C99] italic">Finder</span>
+          <span className="text-gray-800">
+            <RenterInfo text="Hostel" />
+          </span>
+          <span className="text-[#3A2C99] italic">
+            <RenterInfo text="Finder" />
+          </span>
         </div>
 
-        {/* Right Section */}
-        <div className="flex items-center gap-3">
-          {isLoggedin ? (
+        {/* Desktop Navbar Right Section */}
+        <div className="hidden md:flex items-center gap-3">
+          {/* Language Toggle */}
+          <LanguageToggle />
+
+          {/* Divider */}
+          <div className="h-7 border-l border-[#3A2C99] mx-2" />
+
+          {/* Show Login/Register buttons when not logged in, Profile dropdown when logged in */}
+          {!isLoggedin ? (
+            <>
+              <button
+                onClick={() => {
+                  setAuthState("Sign Up");
+                  setShowLoginModal(true);
+                }}
+                className="text-white bg-[#3A2C99] px-4 py-2 rounded-md hover:bg-white hover:text-black transition"
+              >
+                Register
+              </button>
+              <button
+                onClick={() => {
+                  setAuthState("Login");
+                  setShowLoginModal(true);
+                }}
+                className="text-white bg-[#3A2C99] px-4 py-2 rounded-md hover:bg-white hover:text-black transition"
+              >
+                Log in
+              </button>
+            </>
+          ) : (
             <div className="relative" ref={profileRef}>
               <button
                 onClick={() => setProfileOpen(!profileOpen)}
-                className="flex items-center justify-center w-10 h-10 rounded-full bg-[#3A2C99] text-white hover:bg-white hover:text-[#3A2C99] transition"
+                className="flex items-center justify-center w-10 h-10 rounded-full bg-[#3A2C99] text-white hover:bg-white hover:text-[#3A2C99] transition z-40"
               >
                 <FaUser />
               </button>
 
               {profileOpen && (
-                <div className="absolute right-0 mt-2 w-48 bg-white shadow-md rounded-md flex flex-col z-30">
+                <div className="absolute right-0 mt-2 w-48 bg-white shadow-lg rounded-md flex flex-col z-50 border border-gray-200">
                   <button
                     onClick={() => {
                       navigate("/favorites");
                       setProfileOpen(false);
                     }}
-                    className="px-4 py-2 hover:bg-gray-100 text-left"
+                    className="px-4 py-2 hover:bg-gray-100 text-left transition-colors"
                   >
-                    My Faves
-                  </button>
-                  <button
-                    onClick={() => {
-                      navigate("/saved-searches");
-                      setProfileOpen(false);
-                    }}
-                    className="px-4 py-2 hover:bg-gray-100 text-left"
-                  >
-                    Saved Searches
-                  </button>
-                  <button
-                    onClick={() => {
-                      navigate("/student-profile?tab=inbox");
-                      setProfileOpen(false);
-                    }}
-                    className="px-4 py-2 hover:bg-gray-100 text-left"
-                  >
-                    Inbox
+                    <RenterInfo text="My Faves" />
                   </button>
                   <button
                     onClick={() => {
                       navigate("/student-profile");
                       setProfileOpen(false);
                     }}
-                    className="px-4 py-2 hover:bg-gray-100 text-left"
+                    className="px-4 py-2 hover:bg-gray-100 text-left transition-colors"
                   >
-                    Profile
+                    <RenterInfo text="Profile" />
                   </button>
+                  <button
+                    onClick={() => {
+                      navigate("/student-profile?tab=inbox");
+                      setProfileOpen(false);
+                    }}
+                    className="px-4 py-2 hover:bg-gray-100 text-left transition-colors"
+                  >
+                    <RenterInfo text="Inbox" />
+                  </button>
+                  <div className="border-t border-gray-200">
+                    <button
+                      onClick={() => {
+                        logout();
+                        setProfileOpen(false);
+                      }}
+                      className="px-4 py-2 hover:bg-gray-100 text-left text-red-600 w-full transition-colors"
+                    >
+                      <RenterInfo text="Sign Out" />
+                    </button>
+                  </div>
                 </div>
               )}
             </div>
-          ) : (
-            <>
-              {/* Mobile Hamburger */}
-              <button
-                onClick={() => setMenuOpen(!menuOpen)}
-                className="sm:hidden flex items-center justify-center w-10 h-10 rounded-md bg-[#3A2C99] text-white hover:bg-white hover:text-[#3A2C99] transition"
-              >
-                <FaBars />
-              </button>
-
-              {/* Desktop Buttons */}
-              <div className="hidden sm:flex items-center gap-3">
-                <button
-                  onClick={() => {
-                    setAuthState("Sign Up");
-                    setShowLoginModal(true);
-                  }}
-                  className="text-white bg-[#3A2C99] px-4 py-2 rounded-md hover:bg-white hover:text-black transition cursor-pointer"
-                >
-                  Register
-                </button>
-                <button
-                  onClick={() => {
-                    setAuthState("Login");
-                    setShowLoginModal(true);
-                  }}
-                  className="text-white bg-[#3A2C99] px-4 py-2 rounded-md hover:bg-white hover:text-black transition cursor-pointer"
-                >
-                  Log in
-                </button>
-              </div>
-
-              {/* Mobile Menu */}
-              {menuOpen && (
-                <div className="absolute top-16 right-4 w-40 bg-white shadow-md rounded-md flex flex-col z-30 sm:hidden">
-                  <button
-                    onClick={() => {
-                      setAuthState("Sign Up");
-                      setShowLoginModal(true);
-                      setMenuOpen(false);
-                    }}
-                    className="px-4 py-2 hover:bg-gray-100 text-left"
-                  >
-                    Register
-                  </button>
-                  <button
-                    onClick={() => {
-                      setAuthState("Login");
-                      setShowLoginModal(true);
-                      setMenuOpen(false);
-                    }}
-                    className="px-4 py-2 hover:bg-gray-100 text-left"
-                  >
-                    Log in
-                  </button>
-                </div>
-              )}
-            </>
           )}
+        </div>
+
+        {/* Mobile Navbar Right Section */}
+        <div className="md:hidden flex items-center gap-2">
+          {/* Mobile Menu Toggle */}
+          <div className="relative">
+            <button
+              onClick={() => setMenuOpen(!menuOpen)}
+              className="text-2xl text-[#3A2C99] transition-all duration-300 ease-in-out hover:scale-110"
+            >
+              {menuOpen ? <FaTimes className="rotate-180 transition-transform duration-300" /> : <FaBars className="transition-transform duration-300" />}
+            </button>
+
+            {/* Mobile Dropdown */}
+            {menuOpen && (
+              <div className="absolute top-full right-0 bg-white shadow-lg rounded-md flex flex-col z-50 border border-gray-200 w-48 mt-2 transition-all duration-300 ease-in-out">
+                {/* Language Toggle in Mobile Dropdown */}
+                <div className="px-4 py-2 border-b border-gray-200">
+                  <LanguageToggle />
+                </div>
+                
+                {!isLoggedin ? (
+                  <>
+                    <button
+                      onClick={() => {
+                        setAuthState("Sign Up");
+                        setShowLoginModal(true);
+                        setMenuOpen(false);
+                      }}
+                      className="px-4 py-2 hover:bg-gray-100 text-left transition-colors"
+                    >
+                      Register
+                    </button>
+                    <button
+                      onClick={() => {
+                        setAuthState("Login");
+                        setShowLoginModal(true);
+                        setMenuOpen(false);
+                      }}
+                      className="px-4 py-2 hover:bg-gray-100 text-left transition-colors"
+                    >
+                      Log in
+                    </button>
+                  </>
+                ) : (
+                  <>
+                    <button
+                      onClick={() => {
+                        navigate("/favorites");
+                        setMenuOpen(false);
+                      }}
+                      className="px-4 py-2 hover:bg-gray-100 text-left transition-colors"
+                    >
+                      <RenterInfo text="My Faves" />
+                    </button>
+                    <button
+                      onClick={() => {
+                        navigate("/student-profile");
+                        setMenuOpen(false);
+                      }}
+                      className="px-4 py-2 hover:bg-gray-100 text-left transition-colors"
+                    >
+                      <RenterInfo text="Profile" />
+                    </button>
+                    <button
+                      onClick={() => {
+                        navigate("/student-profile?tab=inbox");
+                        setMenuOpen(false);
+                      }}
+                      className="px-4 py-2 hover:bg-gray-100 text-left transition-colors"
+                    >
+                      <RenterInfo text="Inbox" />
+                    </button>
+                    <div className="border-t border-gray-200">
+                      <button
+                        onClick={() => {
+                          logout();
+                          setMenuOpen(false);
+                        }}
+                        className="px-4 py-2 hover:bg-gray-100 text-left text-red-600 w-full transition-colors"
+                      >
+                        <RenterInfo text="Sign Out" />
+                      </button>
+                    </div>
+                  </>
+                )}
+              </div>
+            )}
+          </div>
         </div>
       </nav>
 
@@ -220,27 +277,19 @@ const AllProperties = () => {
             {properties
               .slice(-9)
               .reverse()
-              .map((property) => (
+              .map((property, index) => (
                 <div
-                  key={property._id}
+                  key={`${property._id}-${index}`}
                   className="bg-white rounded-xl shadow-md overflow-hidden border border-gray-200 hover:shadow-xl transition-transform transform hover:scale-105 relative"
                 >
                   {/* Favorite Button */}
                   <div className="absolute top-3 left-3 z-10">
-                    <button
-                      onClick={() => handleFavoriteToggle(property._id)}
-                      className="focus:outline-none bg-white rounded-md p-1 sm:p-2 shadow-md hover:bg-gray-100 transition w-8 sm:w-10"
-                    >
-                      <span
-                        className={`text-xl sm:text-2xl ${
-                          favorites.includes(property._id)
-                            ? "text-red-500"
-                            : "text-gray-400"
-                        }`}
-                      >
-                        ♥
-                      </span>
-                    </button>
+                    <FavoriteButton
+                      propertyId={property._id}
+                      isFavorited={isFavorited(property._id)}
+                      onToggle={handleFavoriteToggle}
+                      size="default"
+                    />
                   </div>
 
                   {/* Image */}

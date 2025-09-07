@@ -11,6 +11,8 @@ import { useLanguage } from "../context/LanguageContext";
 import TranslatedText from "./TranslatedText";
 import LanguageToggle from "./LanguageToggle";
 import AvailabilityBadge from "./AvailabilityBadge";
+import FavoriteButton from "./FavoriteButton";
+import { useFavorites } from "../hooks/useFavorites";
 import { FaUser } from "react-icons/fa"; // ✅ Import profile icon
 import { Link } from "react-router-dom";
 import { toast } from "react-toastify";
@@ -18,9 +20,8 @@ import { toast } from "react-toastify";
 const StudentHome = () => {
   
   const navigate = useNavigate();
-  const { userData, backendurl, isLoggedin } = useContext(AppContext);
+  const { userData, backendurl, isLoggedin, logout } = useContext(AppContext);
   const [properties, setProperties] = useState([]);
-  const [favorites, setFavorites] = useState([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedProperty, setSelectedProperty] = useState(null);
   const [unreadCount, setUnreadCount] = useState(0);
@@ -32,6 +33,9 @@ const StudentHome = () => {
   const mobileProfileRef = useRef(null);
   const [showLoginModal, setShowLoginModal] = useState(false);
   const [authState, setAuthState] = useState("Login");
+  
+  // Use the custom favorites hook
+  const { isFavorited, toggleFavorite } = useFavorites();
 
   useEffect(() => {
   const handleClickOutside = (event) => {
@@ -54,18 +58,6 @@ const StudentHome = () => {
     setLanguage(language === "en" ? "hi" : "en");
   };
 
-  const fetchFavorites = async () => {
-  if (!isLoggedin) return;
-  try {
-    const res = await fetch(`${backendurl}/api/user/favorites`, {
-      credentials: "include",
-    });
-    const data = await res.json();
-    setFavorites(data.favorites || []); // store full objects, not just IDs
-  } catch (err) {
-    console.error("Error fetching favorites", err);
-  }
-};
 
 const fetchUnreadCount = async () => {
   if (!isLoggedin) return;
@@ -101,30 +93,22 @@ const updateUnreadCount = (newCount) => {
 
   useEffect(() => {
     fetchProperties();
-    fetchFavorites();
     fetchUnreadCount();
   }, [isLoggedin]);
 
   const handleFavoriteToggle = async (propertyId) => {
-  if (!isLoggedin) {
-    setAuthState("Login");
-    setShowLoginModal(true);
-    return;
-  }
-
-  try {
-    const res = await fetch(`${backendurl}/api/user/favorites/${propertyId}`, {
-      method: "POST",
-      credentials: "include",
-    });
-    const data = await res.json();
-    if (data.favorites) {
-      setFavorites(data.favorites); // again store full objects
+    if (!isLoggedin) {
+      setAuthState("Login");
+      setShowLoginModal(true);
+      return;
     }
-  } catch (err) {
-    console.error("Error toggling favorite", err);
-  }
-};
+
+    try {
+      await toggleFavorite(propertyId);
+    } catch (err) {
+      console.error("Error toggling favorite", err);
+    }
+  };
 
 
 
@@ -133,7 +117,10 @@ const updateUnreadCount = (newCount) => {
       {/* ===== Navbar ===== */}
       <nav className="flex justify-between items-center px-4 sm:px-8 py-4 sm:py-6 bg-gray-50">
         {/* Logo */}
-        <div className="flex items-center space-x-2 text-2xl sm:text-3xl font-bold">
+        <div 
+          className="flex items-center space-x-2 text-2xl sm:text-3xl font-bold cursor-pointer"
+          onClick={() => navigate("/")}
+        >
           <img
             src={assets.logo1}
             alt="Hostel Finder Logo"
@@ -177,15 +164,6 @@ const updateUnreadCount = (newCount) => {
                 </button>
                 <button
                   onClick={() => {
-                    navigate("/saved-searches");
-                    setProfileOpen(false);
-                  }}
-                  className="px-4 py-2 hover:bg-gray-100 text-left transition-colors"
-                >
-                  <RenterInfo text="Saved Searches" />
-                </button>
-                <button
-                  onClick={() => {
                     navigate("/student-profile");
                     setProfileOpen(false);
                   }}
@@ -207,6 +185,17 @@ const updateUnreadCount = (newCount) => {
                     </span>
                   )}
                 </button>
+                <div className="border-t border-gray-200">
+                  <button
+                    onClick={() => {
+                      logout();
+                      setProfileOpen(false);
+                    }}
+                    className="px-4 py-2 hover:bg-gray-100 text-left text-red-600 w-full transition-colors"
+                  >
+                    <RenterInfo text="Sign Out" />
+                  </button>
+                </div>
               </div>
             )}
           </div>
@@ -240,15 +229,6 @@ const updateUnreadCount = (newCount) => {
                 </button>
                 <button
                   onClick={() => {
-                    navigate("/saved-searches");
-                    setMobileProfileOpen(false);
-                  }}
-                  className="px-4 py-2 hover:bg-gray-100 text-left transition-colors"
-                >
-                  <RenterInfo text="Saved Searches" />
-                </button>
-                <button
-                  onClick={() => {
                     navigate("/student-profile");
                     setMobileProfileOpen(false);
                   }}
@@ -270,6 +250,17 @@ const updateUnreadCount = (newCount) => {
                     </span>
                   )}
                 </button>
+                <div className="border-t border-gray-200">
+                  <button
+                    onClick={() => {
+                      logout();
+                      setMobileProfileOpen(false);
+                    }}
+                    className="px-4 py-2 hover:bg-gray-100 text-left text-red-600 w-full transition-colors"
+                  >
+                    <RenterInfo text="Sign Out" />
+                  </button>
+                </div>
               </div>
             )}
           </div>
@@ -362,27 +353,19 @@ const updateUnreadCount = (newCount) => {
 
         {properties && properties.length > 0 ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8 max-w-7xl mx-auto">
-            {properties.slice(0, 3).map((property) => (
+            {properties.slice(0, 3).map((property, index) => (
               <div
-                key={property._id}
+                key={`${property._id}-${index}`}
                 className="bg-white rounded-xl shadow-md overflow-hidden border border-gray-200 hover:shadow-xl transition-transform transform hover:scale-105 relative"
               >
                 {/* Favorite Button */}
                 <div className="absolute top-3 left-3 z-10">
-                  <button
-                    onClick={() => handleFavoriteToggle(property._id)}
-                    className="focus:outline-none bg-white rounded-md p-1 sm:p-2 shadow-md hover:bg-gray-100 transition w-8 sm:w-10"
-                  >
-                   <span
-  className={`text-xl sm:text-2xl ${
-    favorites.some((fav) => fav._id === property._id)
-      ? "text-red-500"
-      : "text-gray-400"
-  }`}
->
-  ♥
-</span>
-                  </button>
+                  <FavoriteButton
+                    propertyId={property._id}
+                    isFavorited={isFavorited(property._id)}
+                    onToggle={handleFavoriteToggle}
+                    size="default"
+                  />
                 </div>
 
                 {/* Image */}

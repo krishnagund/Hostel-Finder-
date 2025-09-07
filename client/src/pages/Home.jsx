@@ -13,6 +13,8 @@ import RenterInfo from "../components/RenterInfo";
 import TranslatedText from "../components/TranslatedText";
 import LanguageToggle from "../components/LanguageToggle";
 import AvailabilityBadge from "../components/AvailabilityBadge";
+import FavoriteButton from "../components/FavoriteButton";
+import { useFavorites } from "../hooks/useFavorites";
 
 import { FaBars, FaTimes } from "react-icons/fa";
 import { Link } from "react-router-dom";
@@ -22,29 +24,18 @@ const Home = () => {
   const [authState, setAuthState] = useState("Login");
   const { isLoggedin, userData, backendurl } = useContext(AppContext);
   const [properties, setProperties] = useState([]);
-  const [favorites, setFavorites] = useState([]);
   const [selectedProperty, setSelectedProperty] = useState(null);
   const { language, setLanguage } = useLanguage();
   const [searchQuery, setSearchQuery] = useState("");
   const [menuOpen, setMenuOpen] = useState(false);
+  
+  // Use the custom favorites hook
+  const { isFavorited, toggleFavorite } = useFavorites();
 
   const navigate = useNavigate();
 
   const toggleLanguage = () => {
     setLanguage(language === "en" ? "hi" : "en");
-  };
-
-  const fetchFavorites = async () => {
-    if (!isLoggedin) return;
-    try {
-      const res = await fetch(`${backendurl}/api/user/favorites`, {
-        credentials: "include",
-      });
-      const data = await res.json();
-      setFavorites(data.favorites.map((fav) => fav._id));
-    } catch (err) {
-      console.error("Error fetching favorites", err);
-    }
   };
 
   const fetchProperties = async () => {
@@ -61,12 +52,7 @@ const Home = () => {
 
   useEffect(() => {
     fetchProperties();
-    if (isLoggedin) {
-      fetchFavorites();
-    } else {
-      setFavorites([]);
-    }
-  }, [isLoggedin]);
+  }, []);
 
   const handleFavoriteToggle = async (propertyId) => {
     if (!isLoggedin) {
@@ -76,18 +62,7 @@ const Home = () => {
     }
 
     try {
-      const res = await fetch(
-        `${backendurl}/api/user/favorites/${propertyId}`,
-        {
-          method: "POST",
-          credentials: "include",
-        }
-      );
-
-      const data = await res.json();
-      if (data.favorites) {
-        setFavorites(data.favorites);
-      }
+      await toggleFavorite(propertyId);
     } catch (err) {
       console.error("Error toggling favorite", err);
     }
@@ -152,15 +127,15 @@ const Home = () => {
         <div className="md:hidden">
           <button
             onClick={() => setMenuOpen(!menuOpen)}
-            className="text-2xl text-[#3A2C99]"
+            className="text-2xl text-[#3A2C99] transition-all duration-300 ease-in-out hover:scale-110"
           >
-            {menuOpen ? <FaTimes /> : <FaBars />}
+            {menuOpen ? <FaTimes className="rotate-180 transition-transform duration-300" /> : <FaBars className="transition-transform duration-300" />}
           </button>
         </div>
 
         {/* Mobile Dropdown */}
         {menuOpen && (
-          <div className="absolute top-full right-0 bg-white shadow-md flex flex-col gap-3 px-6 py-4 w-48 z-20 md:hidden">
+          <div className="absolute top-full right-0 bg-white shadow-md flex flex-col gap-3 px-6 py-4 w-48 z-20 md:hidden animate-in slide-in-from-top-2 duration-300">
             <LanguageToggle />
             {!isLoggedin ? (
               <>
@@ -294,27 +269,19 @@ const Home = () => {
 
         {properties && properties.length > 0 ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 max-w-7xl mx-auto">
-            {properties.slice(0, 3).map((property) => (
+            {properties.slice(0, 3).map((property, index) => (
               <div
-                key={property._id}
+                key={`${property._id}-${index}`}
                 className="bg-white rounded-xl shadow-md overflow-hidden border border-gray-200 hover:shadow-xl transition-transform transform hover:scale-105 relative"
               >
                 {/* Favorite */}
                 <div className="absolute top-4 left-4 z-10">
-                  <button
-                    onClick={() => handleFavoriteToggle(property._id)}
-                    className="focus:outline-none bg-white rounded-md p-2 shadow-md hover:bg-gray-100 transition w-10"
-                  >
-                    <span
-                      className={`text-2xl ${
-                        !isLoggedin || !favorites.includes(property._id)
-                          ? "text-gray-400"
-                          : "text-red-500"
-                      }`}
-                    >
-                      ♥
-                    </span>
-                  </button>
+                  <FavoriteButton
+                    propertyId={property._id}
+                    isFavorited={isFavorited(property._id)}
+                    onToggle={handleFavoriteToggle}
+                    size="default"
+                  />
                 </div>
 
                 {/* Image */}
@@ -397,6 +364,72 @@ const Home = () => {
 
         <div className="mt-10">
           <TopCities />
+        </div>
+      </section>
+
+      {/* Single Testimonial Section */}
+      <section className="px-4 sm:px-6 py-16 bg-white">
+        <div className="max-w-6xl mx-auto">
+          <div className="flex flex-col lg:flex-row items-center gap-12">
+            {/* Left Side - Quote */}
+            <div className="flex-1">
+              <div className="relative">
+                {/* Large Quote Mark */}
+                <div className="text-6xl sm:text-7xl lg:text-8xl font-bold text-[#3A2C99] opacity-20 mb-4">
+                  "
+                </div>
+                
+                {/* Testimonial Text */}
+                <blockquote className="text-lg sm:text-xl lg:text-2xl text-gray-700 leading-relaxed mb-6 relative z-10">
+                  <RenterInfo text="I found my perfect hostel within just 2 days using Hostel Finder! The platform is incredibly easy to use, the photos are real, and the owners are verified. I had multiple options to choose from and the booking process was smooth. Will definitely recommend this to all my friends!" />
+                </blockquote>
+                
+                {/* Decorative Line */}
+                <div className="flex items-center">
+                  <div className="w-12 h-1 bg-green-500 rounded-full"></div>
+                  <div className="w-8 h-1 bg-green-400 rounded-full ml-2"></div>
+                </div>
+              </div>
+            </div>
+
+            {/* Right Side - Photo */}
+            <div className="flex-shrink-0">
+              <div className="relative">
+                {/* Main Portrait */}
+                <div className="w-48 h-60 lg:w-56 lg:h-72 relative">
+                  <div className="absolute inset-0 bg-gradient-to-br from-[#3A2C99] to-purple-600 rounded-3xl transform rotate-3"></div>
+                  <div className="relative bg-white rounded-3xl p-2 transform -rotate-3">
+                    <img
+                      src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=300&h=400&fit=crop&crop=face"
+                      alt="Happy Student"
+                      className="w-full h-full object-cover rounded-2xl"
+                    />
+                  </div>
+                </div>
+                
+                {/* Small Property Images */}
+                <div className="absolute -bottom-6 -right-6 lg:-bottom-8 lg:-right-8 space-y-3">
+                  {/* Top Property */}
+                  <div className="w-20 h-16 lg:w-24 lg:h-20 bg-white rounded-lg shadow-lg overflow-hidden">
+                    <img
+                      src="https://images.unsplash.com/photo-1564013799919-ab600027ffc6?w=100&h=80&fit=crop"
+                      alt="Hostel Building"
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
+                  
+                  {/* Bottom Property */}
+                  <div className="w-20 h-16 lg:w-24 lg:h-20 bg-white rounded-lg shadow-lg overflow-hidden">
+                    <img
+                      src="https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?w=100&h=80&fit=crop"
+                      alt="Hostel Room"
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       </section>
 

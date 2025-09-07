@@ -7,6 +7,10 @@ import LoginModal from "./LoginModal";
 import PropertyDetailsModal from "./PropertyDetailsModal";
 import { Menu, X, User, SlidersHorizontal, Map, List } from "lucide-react";
 import AvailabilityBadge from "../components/AvailabilityBadge";
+import FavoriteButton from "../components/FavoriteButton";
+import { useFavorites } from "../hooks/useFavorites";
+import LanguageToggle from "../components/LanguageToggle";
+import RenterInfo from "../components/RenterInfo";
 
 // Utility
 const formatINR = (n) => (Number.isFinite(+n) ? new Intl.NumberFormat("en-IN").format(+n) : n);
@@ -134,7 +138,7 @@ const FilterDrawer = ({
 
 const HostelSearchPage = () => {
   const navigate = useNavigate();
-  const { backendurl, isLoggedin } = useContext(AppContext);
+  const { backendurl, isLoggedin, logout } = useContext(AppContext);
 
   const [showLoginModal, setShowLoginModal] = useState(false);
   const [properties, setProperties] = useState([]);
@@ -143,11 +147,18 @@ const HostelSearchPage = () => {
   const city = searchParams.get("city") || "";
   const [authState, setAuthState] = useState("Login");
   const [selectedProperty, setSelectedProperty] = useState(null);
+  
+  // Use the custom favorites hook
+  const { isFavorited, toggleFavorite } = useFavorites();
 
   // UI
   const [menuOpen, setMenuOpen] = useState(false);
   const [showFilters, setShowFilters] = useState(false);
   const [showMapOnMobile, setShowMapOnMobile] = useState(true);
+  const [profileOpen, setProfileOpen] = useState(false);
+  const [mobileProfileOpen, setMobileProfileOpen] = useState(false);
+  const profileRef = useRef(null);
+  const mobileProfileRef = useRef(null);
 
   // 🔹 Force default to "list" view on mobile when city is searched
   useEffect(() => {
@@ -240,135 +251,232 @@ const HostelSearchPage = () => {
   const [selectedIdForPopup, setSelectedIdForPopup] = useState(null);
 
   // Dropdown outside close
-  const dropdownRef = useRef(null);
   useEffect(() => {
     const handler = (e) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
-        setMenuOpen(false);
+      if (profileRef.current && !profileRef.current.contains(e.target)) {
+        setProfileOpen(false);
+      }
+      if (mobileProfileRef.current && !mobileProfileRef.current.contains(e.target)) {
+        setMobileProfileOpen(false);
       }
     };
     document.addEventListener("mousedown", handler);
     return () => document.removeEventListener("mousedown", handler);
   }, []);
 
+  const handleFavoriteToggle = async (propertyId) => {
+    if (!isLoggedin) {
+      setAuthState("Login");
+      setShowLoginModal(true);
+      return;
+    }
+
+    try {
+      await toggleFavorite(propertyId);
+    } catch (err) {
+      console.error("Error toggling favorite", err);
+    }
+  };
+
   return (
     <div className="bg-gray-50 min-h-screen font-sans relative">
       {/* Navbar */}
-      <nav className="flex justify-between items-center px-6 md:px-12 py-4 bg-gray-50 relative z-50">
+      <nav className="flex justify-between items-center px-4 sm:px-8 py-4 sm:py-6 bg-gray-50 relative z-50">
         {/* Logo */}
         <div
           onClick={() => navigate("/")}
-          className="flex items-center space-x-2 text-2xl font-bold cursor-pointer"
+          className="flex items-center space-x-2 text-2xl sm:text-3xl font-bold cursor-pointer"
         >
-          <img src={assets.logo1} alt="Hostel Finder Logo" className="h-12 w-12 object-contain" />
-          <span className="text-gray-800">Hostel</span>
-          <span className="text-[#3A2C99] italic">Finder</span>
+          <img 
+            src={assets.logo1} 
+            alt="Hostel Finder Logo" 
+            className="h-12 w-12 sm:h-16 sm:w-16 object-contain" 
+          />
+          <span className="text-gray-800">
+            <RenterInfo text="Hostel" />
+          </span>
+          <span className="text-[#3A2C99] italic">
+            <RenterInfo text="Finder" />
+          </span>
         </div>
 
-        {/* Right */}
-        <div className="relative z-50" ref={dropdownRef}>
-          {isLoggedin ? (
+        {/* Desktop Navbar Right Section */}
+        <div className="hidden md:flex items-center gap-3">
+          {/* Language Toggle */}
+          <LanguageToggle />
+
+          {/* Divider */}
+          <div className="h-7 border-l border-[#3A2C99] mx-2" />
+
+          {/* Show Login/Register buttons when not logged in, Profile dropdown when logged in */}
+          {!isLoggedin ? (
             <>
               <button
-                onClick={() => setMenuOpen((s) => !s)}
-                className="p-2 rounded-full bg-gray-200 hover:bg-gray-300"
+                onClick={() => {
+                  setAuthState("Sign Up");
+                  setShowLoginModal(true);
+                }}
+                className="text-white bg-[#3A2C99] px-4 py-2 rounded-md hover:bg-white hover:text-black transition"
               >
-                <User className="w-6 h-6 text-gray-700" />
+                Register
               </button>
-              {menuOpen && (
-                <div className="absolute right-0 mt-2 w-48 bg-white shadow-lg rounded-xl py-2 z-50">
+              <button
+                onClick={() => {
+                  setAuthState("Login");
+                  setShowLoginModal(true);
+                }}
+                className="text-white bg-[#3A2C99] px-4 py-2 rounded-md hover:bg-white hover:text-black transition"
+              >
+                Log in
+              </button>
+            </>
+          ) : (
+            <div className="relative" ref={profileRef}>
+              <button
+                onClick={() => setProfileOpen(!profileOpen)}
+                className="flex items-center justify-center w-10 h-10 rounded-full bg-[#3A2C99] text-white hover:bg-white hover:text-[#3A2C99] transition z-40"
+              >
+                <User className="w-5 h-5" />
+              </button>
+
+              {profileOpen && (
+                <div className="absolute right-0 mt-2 w-48 bg-white shadow-lg rounded-md flex flex-col z-50 border border-gray-200">
                   <button
                     onClick={() => {
                       navigate("/favorites");
-                      setMenuOpen(false);
+                      setProfileOpen(false);
                     }}
-                    className="block w-full text-left px-4 py-2 hover:bg-gray-100"
+                    className="px-4 py-2 hover:bg-gray-100 text-left transition-colors"
                   >
-                    My Faves
-                  </button>
-                  <button className="block w-full text-left px-4 py-2 hover:bg-gray-100">
-                    Saved Searches
-                  </button>
-                  <button
-                    onClick={() => {
-                      navigate("/student-profile?tab=inbox");
-                      setMenuOpen(false);
-                    }}
-                    className="block w-full text-left px-4 py-2 hover:bg-gray-100"
-                  >
-                    Inbox
+                    <RenterInfo text="My Faves" />
                   </button>
                   <button
                     onClick={() => {
                       navigate("/student-profile");
-                      setMenuOpen(false);
+                      setProfileOpen(false);
                     }}
-                    className="block w-full text-left px-4 py-2 hover:bg-gray-100"
+                    className="px-4 py-2 hover:bg-gray-100 text-left transition-colors"
                   >
-                    Profile
-                  </button>
-                </div>
-              )}
-            </>
-          ) : (
-            <>
-              <button
-                onClick={() => setMenuOpen((s) => !s)}
-                className="p-2 rounded-md border border-gray-300 md:hidden"
-              >
-                {menuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
-              </button>
-              <div className="hidden md:flex gap-3">
-                <button
-                  onClick={() => {
-                    setAuthState("Sign Up");
-                    setShowLoginModal(true);
-                  }}
-                  className="text-white bg-[#3A2C99] px-4 py-2 rounded-md hover:bg-white hover:text-black transition"
-                >
-                  Register
-                </button>
-                <button
-                  onClick={() => {
-                    setAuthState("Login");
-                    setShowLoginModal(true);
-                  }}
-                  className="text-white bg-[#3A2C99] px-4 py-2 rounded-md hover:bg-white hover:text-black transition"
-                >
-                  Log in
-                </button>
-              </div>
-              {menuOpen && (
-                <div className="absolute right-0 mt-2 w-40 bg-white shadow-lg rounded-xl py-2 z-50 md:hidden">
-                  <button
-                    onClick={() => {
-                      setAuthState("Sign Up");
-                      setShowLoginModal(true);
-                      setMenuOpen(false);
-                    }}
-                    className="block w-full text-left px-4 py-2 hover:bg-gray-100"
-                  >
-                    Register
+                    <RenterInfo text="Profile" />
                   </button>
                   <button
                     onClick={() => {
-                      setAuthState("Login");
-                      setShowLoginModal(true);
-                      setMenuOpen(false);
+                      navigate("/student-profile?tab=inbox");
+                      setProfileOpen(false);
                     }}
-                    className="block w-full text-left px-4 py-2 hover:bg-gray-100"
+                    className="px-4 py-2 hover:bg-gray-100 text-left transition-colors"
                   >
-                    Log in
+                    <RenterInfo text="Inbox" />
                   </button>
+                  <div className="border-t border-gray-200">
+                    <button
+                      onClick={() => {
+                        logout();
+                        setProfileOpen(false);
+                      }}
+                      className="px-4 py-2 hover:bg-gray-100 text-left text-red-600 w-full transition-colors"
+                    >
+                      <RenterInfo text="Sign Out" />
+                    </button>
+                  </div>
                 </div>
               )}
-            </>
+            </div>
           )}
+        </div>
+
+        {/* Mobile Navbar Right Section */}
+        <div className="md:hidden flex items-center gap-2">
+          {/* Mobile Menu Toggle */}
+          <div className="relative">
+            <button
+              onClick={() => setMenuOpen(!menuOpen)}
+              className="text-2xl text-[#3A2C99] transition-all duration-300 ease-in-out hover:scale-110"
+            >
+              {menuOpen ? <X className="w-6 h-6 rotate-180 transition-transform duration-300" /> : <Menu className="w-6 h-6 transition-transform duration-300" />}
+            </button>
+
+            {/* Mobile Dropdown */}
+            {menuOpen && (
+              <div className="absolute top-full right-0 bg-white shadow-lg rounded-md flex flex-col z-50 border border-gray-200 w-48 mt-2 transition-all duration-300 ease-in-out">
+                {/* Language Toggle in Mobile Dropdown */}
+                <div className="px-4 py-2 border-b border-gray-200">
+                  <LanguageToggle />
+                </div>
+                
+                {!isLoggedin ? (
+                  <>
+                    <button
+                      onClick={() => {
+                        setAuthState("Sign Up");
+                        setShowLoginModal(true);
+                        setMenuOpen(false);
+                      }}
+                      className="px-4 py-2 hover:bg-gray-100 text-left transition-colors"
+                    >
+                      Register
+                    </button>
+                    <button
+                      onClick={() => {
+                        setAuthState("Login");
+                        setShowLoginModal(true);
+                        setMenuOpen(false);
+                      }}
+                      className="px-4 py-2 hover:bg-gray-100 text-left transition-colors"
+                    >
+                      Log in
+                    </button>
+                  </>
+                ) : (
+                  <>
+                    <button
+                      onClick={() => {
+                        navigate("/favorites");
+                        setMenuOpen(false);
+                      }}
+                      className="px-4 py-2 hover:bg-gray-100 text-left transition-colors"
+                    >
+                      <RenterInfo text="My Faves" />
+                    </button>
+                    <button
+                      onClick={() => {
+                        navigate("/student-profile");
+                        setMenuOpen(false);
+                      }}
+                      className="px-4 py-2 hover:bg-gray-100 text-left transition-colors"
+                    >
+                      <RenterInfo text="Profile" />
+                    </button>
+                    <button
+                      onClick={() => {
+                        navigate("/student-profile?tab=inbox");
+                        setMenuOpen(false);
+                      }}
+                      className="px-4 py-2 hover:bg-gray-100 text-left transition-colors"
+                    >
+                      <RenterInfo text="Inbox" />
+                    </button>
+                    <div className="border-t border-gray-200">
+                      <button
+                        onClick={() => {
+                          logout();
+                          setMenuOpen(false);
+                        }}
+                        className="px-4 py-2 hover:bg-gray-100 text-left text-red-600 w-full transition-colors"
+                      >
+                        <RenterInfo text="Sign Out" />
+                      </button>
+                    </div>
+                  </>
+                )}
+              </div>
+            )}
+          </div>
         </div>
       </nav>
 
       {/* Toolbar (filters + mobile toggle) */}
-      <div className="flex items-center justify-between px-4 md:px-12 py-3 bg-white border-b">
+      <div className="flex items-center justify-between px-4 sm:px-8 py-3 bg-gray-50 border-b border-gray-200">
         <div className="text-sm text-gray-600">
           Showing <b>{filtered.length}</b> results in <b>{city || "All"}</b>
         </div>
@@ -395,7 +503,7 @@ const HostelSearchPage = () => {
       {/* Main two-pane layout */}
       <div className="flex flex-col md:flex-row h-[calc(100vh-130px)] bg-gray-50 relative z-0">
         {/* Map (hidden on mobile when list is active) */}
-        <div className={`w-full md:w-[60%] ${showMapOnMobile ? "block" : "hidden md:block"} p-3`}>
+        <div className={`w-full md:w-[60%] ${showMapOnMobile ? "block" : "hidden md:block"} p-4 sm:p-6`}>
           <SearchResultsMap
             center={mapCenter}
             properties={filtered}
@@ -407,16 +515,16 @@ const HostelSearchPage = () => {
         </div>
 
         {/* Results list */}
-        <div className="w-full md:w-[40%] h-full overflow-y-auto px-4 py-6 bg-white border-t md:border-t-0 md:border-l border-gray-200 relative z-10">
+        <div className="w-full md:w-[40%] h-full overflow-y-auto px-4 sm:px-8 py-6 bg-gray-50 border-t md:border-t-0 md:border-l border-gray-200 relative z-10">
           <h2 className="text-2xl md:text-3xl font-bold text-gray-800 text-center mb-6">
             Hostels in {city || "Selected Area"}
           </h2>
 
           {filtered.length > 0 ? (
             <div className="space-y-6">
-              {filtered.map((property) => (
+              {filtered.map((property, index) => (
                 <div
-                  key={property._id}
+                  key={`${property._id}-${index}`}
                   className="bg-white rounded-xl shadow-md overflow-hidden border border-gray-200 hover:shadow-xl transition-transform transform hover:scale-[1.01] relative"
                 >
                   <img
@@ -424,7 +532,18 @@ const HostelSearchPage = () => {
                     alt="Property"
                     className="w-full h-56 object-cover"
                   />
-                  <div className="absolute top-4 left-4 bg-white px-3 py-1 text-xs font-medium text-gray-600 rounded shadow">
+                  
+                  {/* Favorite Button */}
+                  <div className="absolute top-4 left-4 z-10">
+                    <FavoriteButton
+                      propertyId={property._id}
+                      isFavorited={isFavorited(property._id)}
+                      onToggle={handleFavoriteToggle}
+                      size="default"
+                    />
+                  </div>
+                  
+                  <div className="absolute top-4 right-4 bg-white px-3 py-1 text-xs font-medium text-gray-600 rounded shadow">
                     {property.createdAt
                       ? `Posted on ${new Date(property.createdAt).toLocaleDateString("en-US", {
                           month: "short",
@@ -433,10 +552,6 @@ const HostelSearchPage = () => {
                         })}`
                       : ""}
                   </div>
-                  <div className="absolute top-4 right-4">
-                    <AvailabilityBadge isAvailable={property.isAvailable} />
-                  </div>
-
                   <div className="p-4 text-left">
                     <p className="text-lg md:text-xl font-semibold text-gray-800 mb-1">
                       ₹{formatINR(property.rent)}
@@ -453,7 +568,12 @@ const HostelSearchPage = () => {
                       {property.city}, {property.state}
                     </p>
 
-                                        <div className="mt-4 flex items-center justify-end gap-3">
+                    {/* Availability Badge above Details Button */}
+                    <div className="mt-4 mb-3 flex justify-end">
+                      <AvailabilityBadge isAvailable={property.isAvailable} />
+                    </div>
+
+                    <div className="flex items-center justify-end gap-3">
                       <button
                         onClick={() => setSelectedProperty(property)}
                         className="px-4 py-2 rounded-lg bg-[#3A2C99] text-white hover:bg-indigo-700 transition"
