@@ -25,7 +25,7 @@ import AdminDashboard from "./admin/AdminDashboard";
 import AdminStats from "./admin/AdminStats";
 import UsersPage from "./admin/UsersPage";
 import PropertiesPage from "./admin/PropertiesPage";
-import EntryGate from "./pages/EntryGate";
+ 
 
 
 const App = () => {
@@ -43,7 +43,7 @@ const App = () => {
       <ToastContainer />
       <ScrollToTop />
       <Routes>
-        <Route path='/' element={<EntryGate />} />
+        <Route path='/' element={<Home/>} />
         <Route path='/home' element={<Home/>}/>
         <Route
   path="/student"

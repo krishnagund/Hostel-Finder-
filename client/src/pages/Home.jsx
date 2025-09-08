@@ -22,7 +22,7 @@ import { Link } from "react-router-dom";
 const Home = () => {
   const [showLoginModal, setShowLoginModal] = useState(false);
   const [authState, setAuthState] = useState("Login");
-  const { isLoggedin, userData, backendurl } = useContext(AppContext);
+  const { isLoggedin, userData, backendurl, userRole, loading } = useContext(AppContext);
   const [properties, setProperties] = useState([]);
   const [selectedProperty, setSelectedProperty] = useState(null);
   const { language, setLanguage } = useLanguage();
@@ -33,6 +33,12 @@ const Home = () => {
   const { isFavorited, toggleFavorite } = useFavorites();
 
   const navigate = useNavigate();
+  // If a logged-in student lands on Home, redirect to student dashboard
+  useEffect(() => {
+    if (!loading && isLoggedin && (userData?.role === "student" || userRole === "student")) {
+      navigate("/student", { replace: true });
+    }
+  }, [loading, isLoggedin, userData?.role, userRole, navigate]);
 
   const toggleLanguage = () => {
     setLanguage(language === "en" ? "hi" : "en");
@@ -113,12 +119,22 @@ const Home = () => {
             </>
           ) : (
             <>
-              <Link
-                to="/student-profile?tab=inbox"
-                className="text-white bg-[#3A2C99] px-4 py-2 rounded-md hover:bg-white hover:text-black transition"
+              <button
+                onClick={() => {
+                  const role = userData?.role;
+                  if (role === "owner") return navigate("/owner");
+                  if (role === "student") return navigate("/student");
+                  if (role === "admin") return navigate("/admin");
+                  navigate("/");
+                }}
+                aria-label="Profile"
+                className="flex items-center gap-2 text-white bg-[#3A2C99] px-4 py-2 rounded-md hover:bg-white hover:text-black transition"
               >
-                Messages
-              </Link>
+                <span className="inline-block w-6 h-6 rounded-full bg-white text-[#3A2C99] font-semibold flex items-center justify-center">
+                  {userData?.name?.[0]?.toUpperCase() || "P"}
+                </span>
+                Profile
+              </button>
             </>
           )}
         </div>
@@ -162,13 +178,19 @@ const Home = () => {
               </>
             ) : (
               <>
-                <Link
-                  to="/student-profile?tab=inbox"
+                <button
+                  onClick={() => {
+                    const role = userData?.role;
+                    if (role === "owner") navigate("/owner");
+                    else if (role === "student") navigate("/student");
+                    else if (role === "admin") navigate("/admin");
+                    else navigate("/");
+                    setMenuOpen(false);
+                  }}
                   className="text-white bg-[#3A2C99] px-4 py-2 rounded-md hover:bg-white hover:text-black transition text-center"
-                  onClick={() => setMenuOpen(false)}
                 >
-                  Messages
-                </Link>
+                  Profile
+                </button>
               </>
             )}
           </div>
@@ -436,7 +458,7 @@ const Home = () => {
       <CTASection
         onListProperty={() => {
           if (isLoggedin) {
-            navigate("/owner-home");
+            navigate("/owner");
           } else {
             setAuthState("Sign Up");
             setShowLoginModal(true);
