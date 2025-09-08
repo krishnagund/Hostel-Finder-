@@ -49,9 +49,11 @@ export const createProperty = async (req, res) => {
 
     await newProperty.save();
 
+    // Get owner information for email notifications
+    const owner = await userModel.findById(userId);
+
     // Send verification request email to property owner
     try {
-      const owner = await userModel.findById(userId);
       if (owner && owner.email) {
         const mailOptions = {
           from: `"${EMAIL_CONFIG.from.name}" <${EMAIL_CONFIG.from.address}>`,

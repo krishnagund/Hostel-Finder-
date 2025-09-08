@@ -15,7 +15,8 @@ const ResetPasswordForm = ({ backendurl, onBack }) => {
   const [isEmailSent, setIsEmailSent] = useState(false);
   const [otp, setOtp] = useState("");
   const [isOtpSubmitted, setIsOtpSubmitted] = useState(false);
-  const [phone, setPhone] = useState(""); 
+  const [phone, setPhone] = useState("");
+  const [showNewPassword, setShowNewPassword] = useState(false); 
 
 
   const inputRefs = React.useRef([]);
@@ -121,14 +122,32 @@ const ResetPasswordForm = ({ backendurl, onBack }) => {
 
       {isOtpSubmitted && (
         <form onSubmit={onSubmitNewPassword}>
-          <input
-            type="password"
-            placeholder="New Password"
-            className="w-full mb-3 px-4 py-2 rounded bg-[#333A5C] text-white"
-            value={newPassword}
-            onChange={(e) => setNewPassword(e.target.value)}
-            required
-          />
+          <div className="relative mb-3">
+            <input
+              type={showNewPassword ? "text" : "password"}
+              placeholder="New Password"
+              className="w-full px-4 py-2 pr-12 rounded bg-[#333A5C] text-white"
+              value={newPassword}
+              onChange={(e) => setNewPassword(e.target.value)}
+              required
+            />
+            <button
+              type="button"
+              onClick={() => setShowNewPassword(!showNewPassword)}
+              className="absolute right-3 top-1/2 transform -translate-y-1/2 text-white hover:text-indigo-300 transition-colors"
+            >
+              {showNewPassword ? (
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.878 9.878L3 3m6.878 6.878L21 21" />
+                </svg>
+              ) : (
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                </svg>
+              )}
+            </button>
+          </div>
           <button type="submit" className="w-full bg-indigo-600 text-white py-2 rounded cursor-pointer">Reset Password</button>
         </form>
       )}
@@ -152,7 +171,8 @@ const LoginModal = ({ isOpen, onClose, initialState = "Login" }) => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [role, setRole] = useState("student");
-   const [phone, setPhone] = useState(""); // ← this fixes the error
+  const [phone, setPhone] = useState(""); // ← this fixes the error
+  const [showPassword, setShowPassword] = useState(false);
 
   // Update state when initialState prop changes
   useEffect(() => {
@@ -169,6 +189,7 @@ const LoginModal = ({ isOpen, onClose, initialState = "Login" }) => {
       setPhone("");
       setRole("student");
       setShowResetPassword(false);
+      setShowPassword(false);
     }
   }, [isOpen]);
 
@@ -191,6 +212,7 @@ const LoginModal = ({ isOpen, onClose, initialState = "Login" }) => {
     setPhone("");
     setRole("student");
     setShowResetPassword(false);
+    setShowPassword(false);
     onClose();
   };
 
@@ -255,7 +277,7 @@ const onSubmitHandler = async (e) => {
 
     return (
     <div 
-      className="fixed inset-0 z-[9999] flex items-start sm:items-center justify-center backdrop-blur-sm bg-black/70 p-4 pt-16 sm:pt-4"
+      className="fixed inset-0 z-[9999] flex items-start sm:items-center justify-center bg-black/50 p-4 pt-16 sm:pt-4"
       onClick={handleClose}
     >
       <div 
@@ -338,11 +360,27 @@ const onSubmitHandler = async (e) => {
                   onChange={(e) => setPassword(e.target.value)}
                   value={password}
                   className="bg-transparent outline-none w-full text-sm sm:text-base"
-                  type="password"
+                  type={showPassword ? "text" : "password"}
                   placeholder="Password"
                   required
                   autoComplete="current-password"
                 />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="flex-shrink-0 text-white hover:text-indigo-300 transition-colors"
+                >
+                  {showPassword ? (
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.878 9.878L3 3m6.878 6.878L21 21" />
+                    </svg>
+                  ) : (
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                    </svg>
+                  )}
+                </button>
               </div>
 
               {state === "Sign Up" && (
