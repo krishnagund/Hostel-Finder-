@@ -25,6 +25,53 @@ const propertySchema = new mongoose.Schema({
     type: Boolean,
     default: true
   },
+  // Indian college/hostel specific fields
+  collegeName: String,
+  distanceFromCollege: String,
+  coursePreferences: String,
+  // Room and facility details
+  roomSize: String,
+  furniture: [String],
+  acAvailable: { type: Boolean, default: false },
+  fanAvailable: { type: Boolean, default: false },
+  attachedBathroom: { type: Boolean, default: false },
+  balcony: { type: Boolean, default: false },
+  // Hostel amenities
+  wifiAvailable: { type: Boolean, default: false },
+  laundryService: { type: Boolean, default: false },
+  messAvailable: { type: Boolean, default: false },
+  commonRoom: { type: Boolean, default: false },
+  studyRoom: { type: Boolean, default: false },
+  gymAvailable: { type: Boolean, default: false },
+  // Food options
+  kitchenAccess: { type: Boolean, default: false },
+  nearbyRestaurants: String,
+  // Safety and security
+  cctvAvailable: { type: Boolean, default: false },
+  securityGuard: { type: Boolean, default: false },
+  femaleOnly: { type: Boolean, default: false },
+  // Transportation
+  busStopDistance: String,
+  metroStationDistance: String,
+  autoRickshawAvailable: { type: Boolean, default: false },
+  // Rules and policies
+  visitorPolicy: String,
+  curfewTiming: String,
+  guestPolicy: String,
+  // Payment terms
+  advancePayment: String,
+  monthlyPayment: String,
+  lateFeePolicy: String,
+  // Additional details
+  rules: String,
+  // Indian-specific utilities
+  electricityBackup: { type: Boolean, default: false },
+  waterSupply: String,
+  maintenance: String,
+  // Additional amenities
+  parkingAvailable: { type: Boolean, default: false },
+  liftAvailable: { type: Boolean, default: false },
+  powerBackup: { type: Boolean, default: false },
   // Property verification status
   status: {
     type: String,
