@@ -164,6 +164,15 @@ const updateUnreadCount = (newCount) => {
                 </button>
                 <button
                   onClick={() => {
+                    navigate("/saved-searches");
+                    setProfileOpen(false);
+                  }}
+                  className="px-4 py-2 hover:bg-gray-100 text-left transition-colors"
+                >
+                  Saved Searches
+                </button>
+                <button
+                  onClick={() => {
                     navigate("/student-profile");
                     setProfileOpen(false);
                   }}
@@ -229,6 +238,15 @@ const updateUnreadCount = (newCount) => {
                 </button>
                 <button
                   onClick={() => {
+                    navigate("/saved-searches");
+                    setMobileProfileOpen(false);
+                  }}
+                  className="px-4 py-2 hover:bg-gray-100 text-left transition-colors"
+                >
+                  Saved Searches
+                </button>
+                <button
+                  onClick={() => {
                     navigate("/student-profile");
                     setMobileProfileOpen(false);
                   }}
@@ -266,6 +284,7 @@ const updateUnreadCount = (newCount) => {
           </div>
         </div>
       </nav>
+
 
       {/* ===== Hero Section ===== */}
       <section

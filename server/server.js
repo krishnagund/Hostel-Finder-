@@ -12,6 +12,7 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import statsRoutes from './routes/statsRoutes.js';
 import adminRoutes from "./routes/adminRoutes.js";
+import savedSearchRoutes from "./routes/savedSearchRoutes.js";
 
 const app = express();
 const port = process.env.PORT || 8081;
@@ -63,6 +64,7 @@ app.use('/api/property', propertyRouter);
 app.use("/api/messages", messageRoutes);
 app.use("/api/stats", statsRoutes);
 app.use("/api/admin", adminRoutes);
+app.use("/api/saved-searches", savedSearchRoutes);
 
 // 🟢 Start server
 app.listen(port, "0.0.0.0", () => {

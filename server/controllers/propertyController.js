@@ -3,6 +3,7 @@ import userModel from '../models/userModel.js';
 import { getCoordinatesFromAddress } from '../utils/geocode.js';
 import transporter, { EMAIL_CONFIG } from '../config/nodemailer.js';
 import { PROPERTY_VERIFICATION_REQUEST_TEMPLATE, ADMIN_PROPERTY_REQUEST_TEMPLATE } from '../config/emailTemplates.js';
+import SavedSearch from "../models/savedSearchModel.js";
 
 export const createProperty = async (req, res) => {
   try {
@@ -125,6 +126,51 @@ export const createProperty = async (req, res) => {
       property: newProperty,
       message: 'Property submitted for verification. It will be visible after admin approval.'
     });
+
+    // Fire-and-forget: notify students with matching saved searches (approved/available filter is applied at fetch time; here we just pre-notify on creation)
+    try {
+      const min = Number(newProperty.rent);
+      const max = Number(newProperty.rent);
+      const matches = await SavedSearch.find({
+        city: newProperty.city,
+        rentMin: { $lte: min },
+        rentMax: { $gte: max },
+        $or: [
+          { availabilityMonth: "" },
+          { availabilityMonth: newProperty.availabilityMonth || "" },
+        ],
+        $and: [
+          { $or: [ { availabilityDay: "" }, { availabilityDay: newProperty.availabilityDay || "" } ] }
+        ],
+        ...(Array.isArray(newProperty.properttyType) ? { types: { $in: newProperty.properttyType } } : {})
+      }).populate('user');
+
+      for (const s of matches) {
+        const student = s.user;
+        if (!student?.email) continue;
+        const mailOptions = {
+          from: `"${EMAIL_CONFIG.from.name}" <${EMAIL_CONFIG.from.address}>`,
+          to: student.email,
+          subject: `New listing in ${newProperty.city} matches your alert` ,
+          replyTo: EMAIL_CONFIG.replyTo,
+          html: `
+            <div style="font-family: Arial, sans-serif;">
+              <h2>New matching listing</h2>
+              <p>A new listing matches your saved search in <b>${newProperty.city}</b>.</p>
+              <ul>
+                <li>Title: ${newProperty.heading || 'Property'}</li>
+                <li>Rent: ₹${newProperty.rent}</li>
+                <li>Type: ${newProperty.properttyType || 'Other'}</li>
+              </ul>
+              <p>Open the app and search for <b>${newProperty.city}</b> to view details.</p>
+            </div>
+          `,
+        };
+        try { await transporter.sendMail(mailOptions); } catch {}
+      }
+    } catch (e) {
+      console.error('Saved search email notify error:', e?.message || e);
+    }
   }catch (err) {
   console.error("❌ Property creation error:");
   console.dir(err, { depth: null });  // shows nested objects

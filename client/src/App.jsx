@@ -21,6 +21,7 @@ import ProtectedRoute from "./pages/ProtectedRoute";
 import LoginPage from "./pages/LoginPage";
 import Forbidden from "./pages/Forbidden";
 import NotFound from "./pages/NotFound";
+import SavedSearches from "./pages/SavedSearches";
 import AdminDashboard from "./admin/AdminDashboard"; 
 import AdminStats from "./admin/AdminStats";
 import UsersPage from "./admin/UsersPage";
@@ -70,6 +71,7 @@ const App = () => {
       <Route path="/all-properties" element={<AllProperties />} />
        <Route path="/hostels" element={<HostelSearchPage />} /> 
        <Route path="/favorites" element={<ProtectedRoute allowedRoles={["student"]}><FavoriteProperties /></ProtectedRoute>} />
+       <Route path="/saved-searches" element={<ProtectedRoute allowedRoles={["student"]}><SavedSearches /></ProtectedRoute>} />
         <Route path="/403" element={<Forbidden />} />
         <Route path="*" element={<NotFound />} />
         <Route

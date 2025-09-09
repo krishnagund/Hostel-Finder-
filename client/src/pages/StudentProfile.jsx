@@ -7,10 +7,11 @@ import axios from "axios";
 import RenterInfo from "../components/RenterInfo";
 import TranslatedText from "../components/TranslatedText";
 import LanguageToggle from "../components/LanguageToggle";
+import ProfileNudge from "../components/ProfileNudge";
 import { FaUser, FaBars, FaTimes, FaWhatsapp, FaPhone, FaSms, FaEnvelope, FaClock } from "react-icons/fa";
 
 const StudentProfile = () => {
-  const { userData, setIsLoggedin, setUserData, backendurl, logout, loading } =
+  const { userData, setIsLoggedin, setUserData, backendurl, logout, loading, getUserData } =
     useContext(AppContext);
   const [messages, setMessages] = useState([]);
   const [saving, setSaving] = useState(false);
@@ -71,6 +72,12 @@ const StudentProfile = () => {
       setActiveTab('profile');
     }
   }, [location.search]);
+
+  // Ensure fresh user data on page mount (fix stale profile after login)
+  useEffect(() => {
+    getUserData?.();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // Load messages when inbox tab is active
   useEffect(() => {
@@ -323,6 +330,15 @@ const StudentProfile = () => {
                 </button>
                 <button
                   onClick={() => {
+                    navigate("/saved-searches");
+                    setProfileOpen(false);
+                  }}
+                  className="px-4 py-2 hover:bg-gray-100 text-left transition-colors"
+                >
+                  Saved Searches
+                </button>
+                <button
+                  onClick={() => {
                     navigate("/student-profile");
                     setProfileOpen(false);
                   }}
@@ -388,6 +404,15 @@ const StudentProfile = () => {
                 </button>
                 <button
                   onClick={() => {
+                    navigate("/saved-searches");
+                    setMobileProfileOpen(false);
+                  }}
+                  className="px-4 py-2 hover:bg-gray-100 text-left transition-colors"
+                >
+                  Saved Searches
+                </button>
+                <button
+                  onClick={() => {
                     navigate("/student-profile");
                     setMobileProfileOpen(false);
                   }}
@@ -425,6 +450,9 @@ const StudentProfile = () => {
           </div>
         </div>
       </nav>
+
+      {/* ===== Profile Completeness Nudge (Student) ===== */}
+      <ProfileNudge userData={userData} role="student" isLoggedin={true} onAction={() => setActiveTab('profile')} />
 
       {/* ===== Tab Navigation ===== */}
       <div className="bg-gray-100 px-4 sm:px-6 py-3 flex gap-4 sm:gap-6 border-b overflow-x-auto scrollbar-hide">

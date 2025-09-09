@@ -41,6 +41,10 @@ const FilterDrawer = ({
   setRentMax,
   datasetMin,
   datasetMax,
+  availabilityMonth,
+  availabilityDay,
+  setAvailabilityMonth,
+  setAvailabilityDay,
   onApply,
 }) => (
   <>
@@ -111,6 +115,41 @@ const FilterDrawer = ({
         </p>
       </div>
 
+      {/* Availability Date */}
+      <div className="mb-6">
+        <h4 className="text-sm font-semibold text-gray-700 mb-2">Availability</h4>
+        <div className="grid grid-cols-2 gap-3">
+          <div className="flex flex-col">
+            <label className="text-xs text-gray-500 mb-1">Month</label>
+            <select
+              className="border rounded-md px-3 py-2"
+              value={availabilityMonth}
+              onChange={(e) => setAvailabilityMonth(e.target.value)}
+            >
+              <option value="">Any</option>
+              {[
+                "January","February","March","April","May","June","July","August","September","October","November","December"
+              ].map(m => (
+                <option key={m} value={m}>{m}</option>
+              ))}
+            </select>
+          </div>
+          <div className="flex flex-col">
+            <label className="text-xs text-gray-500 mb-1">Day</label>
+            <select
+              className="border rounded-md px-3 py-2"
+              value={availabilityDay}
+              onChange={(e) => setAvailabilityDay(e.target.value)}
+            >
+              <option value="">Any</option>
+              {Array.from({ length: 31 }, (_, i) => String(i + 1)).map(d => (
+                <option key={d} value={d}>{d}</option>
+              ))}
+            </select>
+          </div>
+        </div>
+      </div>
+
       <div className="flex items-center justify-between gap-3 sticky bottom-0 bg-white pt-3">
         <button
           onClick={() => {
@@ -145,6 +184,14 @@ const HostelSearchPage = () => {
   const [mapCenter, setMapCenter] = useState([19.076, 72.8777]); // Default Mumbai
   const [searchParams] = useSearchParams();
   const city = searchParams.get("city") || "";
+  const urlRentMin = searchParams.get("rentMin");
+  const urlRentMax = searchParams.get("rentMax");
+  const urlAvailabilityMonth = searchParams.get("availabilityMonth") || "";
+  const urlAvailabilityDay = searchParams.get("availabilityDay") || "";
+  const urlTypesRaw = searchParams.get("types") || "";
+  const urlTypes = urlTypesRaw
+    ? urlTypesRaw.split(',').map(t => decodeURIComponent(t.replace(/\+/g, ' '))).filter(Boolean)
+    : [];
   const [authState, setAuthState] = useState("Login");
   const [selectedProperty, setSelectedProperty] = useState(null);
   
@@ -171,6 +218,8 @@ const HostelSearchPage = () => {
   const [selectedTypes, setSelectedTypes] = useState(new Set());
   const [rentMin, setRentMin] = useState(0);
   const [rentMax, setRentMax] = useState(100000);
+  const [availabilityMonth, setAvailabilityMonth] = useState("");
+  const [availabilityDay, setAvailabilityDay] = useState("");
 
   const toggleType = (t) =>
     setSelectedTypes((prev) => {
@@ -184,9 +233,10 @@ const HostelSearchPage = () => {
     const fetchProperties = async () => {
       try {
         const q = (city || "").trim();
-        const url = q
-          ? `${backendurl}/api/property/all-properties?q=${encodeURIComponent(q)}`
-          : `${backendurl}/api/property/all-properties`;
+        const params = new URLSearchParams();
+        if (q) params.set('q', q);
+        let url = `${backendurl}/api/property/all-properties`;
+        if (params.toString()) url += `?${params.toString()}`;
         let res = await fetch(url);
         let data = await res.json();
         let list = Array.isArray(data?.properties) ? data.properties : [];
@@ -260,6 +310,16 @@ const HostelSearchPage = () => {
     fetchProperties();
   }, [backendurl, city]);
 
+  // Initialize filters from URL on first mount
+  useEffect(() => {
+    if (urlRentMin) setRentMin(Number(urlRentMin));
+    if (urlRentMax) setRentMax(Number(urlRentMax));
+    if (urlAvailabilityMonth) setAvailabilityMonth(urlAvailabilityMonth);
+    if (urlAvailabilityDay) setAvailabilityDay(urlAvailabilityDay);
+    if (urlTypes.length) setSelectedTypes(new Set(urlTypes));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   // Dataset rent range + types for drawer chips
   const datasetStats = useMemo(() => {
     const rents = properties.map((p) => Number(p.rent)).filter((n) => Number.isFinite(n));
@@ -288,9 +348,11 @@ const HostelSearchPage = () => {
       const rentOk =
         Number.isFinite(r) ? r >= (rentMin ?? 0) && r <= (rentMax ?? Infinity) : true;
 
-      return typeOk && rentOk;
+      const availMonthOk = availabilityMonth ? (p.availabilityMonth === availabilityMonth) : true;
+      const availDayOk = availabilityDay ? (String(p.availabilityDay) === String(availabilityDay)) : true;
+      return typeOk && rentOk && availMonthOk && availDayOk;
     });
-  }, [properties, selectedTypes, rentMin, rentMax]);
+  }, [properties, selectedTypes, rentMin, rentMax, availabilityMonth, availabilityDay]);
 
   // When selecting a card, track id to open popup
   const [selectedIdForPopup, setSelectedIdForPopup] = useState(null);
@@ -521,10 +583,7 @@ const HostelSearchPage = () => {
       </nav>
 
       {/* Toolbar (filters + mobile toggle) */}
-      <div className="flex items-center justify-between px-4 sm:px-8 py-3 bg-gray-50 border-b border-gray-200">
-        <div className="text-sm text-gray-600">
-          Showing <b>{filtered.length}</b> results in <b>{city || "All"}</b>
-        </div>
+      <div className="flex items-center justify-end px-4 sm:px-8 py-3 bg-gray-50 border-b border-gray-200">
         <div className="flex items-center gap-2">
           <button
             onClick={() => setShowFilters(true)}
@@ -533,6 +592,38 @@ const HostelSearchPage = () => {
             <SlidersHorizontal className="w-4 h-4" />
             Filters
           </button>
+
+          {isLoggedin && city && (
+            <button
+              onClick={async () => {
+                try {
+                  const res = await fetch(`${backendurl}/api/saved-searches`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    credentials: 'include',
+                    body: JSON.stringify({ city, rentMin, rentMax, availabilityMonth, availabilityDay }),
+                  });
+                  const data = await res.json();
+                  if (data.success) {
+                    // non-blocking visual feedback
+                    const el = document.createElement('div');
+                    el.textContent = 'Search saved';
+                    el.className = 'fixed top-4 right-4 bg-green-600 text-white px-3 py-2 rounded shadow z-[100]';
+                    document.body.appendChild(el);
+                    setTimeout(() => el.remove(), 1500);
+                  } else {
+                    alert(data.message || 'Failed to save search');
+                  }
+                } catch (e) {
+                  console.error('Save search failed', e);
+                  alert('Failed to save search');
+                }
+              }}
+              className="inline-flex items-center gap-2 px-3 py-2 rounded-lg bg-[#3A2C99] text-white hover:bg-white hover:text-black border border-[#3A2C99] transition"
+            >
+              + Save search
+            </button>
+          )}
 
           {/* Mobile: toggle map/list */}
           <button
@@ -649,6 +740,10 @@ const HostelSearchPage = () => {
         setRentMax={setRentMax}
         datasetMin={datasetStats.min}
         datasetMax={datasetStats.max}
+        availabilityMonth={availabilityMonth}
+        availabilityDay={availabilityDay}
+        setAvailabilityMonth={setAvailabilityMonth}
+        setAvailabilityDay={setAvailabilityDay}
         onApply={() => setShowFilters(false)}
       />
 
