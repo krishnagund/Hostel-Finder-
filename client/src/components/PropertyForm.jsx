@@ -367,7 +367,7 @@ const PropertyForm = ({ propertyType, onBack, editProperty = null }) => {
           <h2 className="text-lg sm:text-xl md:text-2xl font-semibold mb-4 sm:mb-6">
             <RenterInfo text={editProperty ? "Edit Property Listing" : "Add a New Listing"} />
           </h2>
-          
+
           <StepIndicator />
           
           <div className="mb-4 sm:mb-6">
@@ -390,139 +390,139 @@ const PropertyForm = ({ propertyType, onBack, editProperty = null }) => {
             {/* Step 1: Basic Information */}
             {currentStep === 1 && (
               <div className="space-y-4 sm:space-y-6">
-                {/* Property Type */}
-                <div>
-                  <label className="block font-medium mb-1">
-                    <RenterInfo text="Property Type *" />
-                  </label>
-                  <select
-                    className="w-full border border-gray-300 rounded-md p-2"
-                    value={formData.properttyType}
-                    onChange={(e) =>
-                      setFormData({ ...formData, properttyType: e.target.value })
-                    }
-                  >
-                    <option value="">None Selected</option>
+            {/* Property Type */}
+            <div>
+              <label className="block font-medium mb-1">
+                <RenterInfo text="Property Type *" />
+              </label>
+              <select
+                className="w-full border border-gray-300 rounded-md p-2"
+                value={formData.properttyType}
+                onChange={(e) =>
+                  setFormData({ ...formData, properttyType: e.target.value })
+                }
+              >
+                <option value="">None Selected</option>
                     <option value="PG (Paying Guest)">PG (Paying Guest)</option>
                     <option value="Boys Hostel">Boys Hostel</option>
                     <option value="Girls Hostel">Girls Hostel</option>
                     <option value="Mixed Hostel">Mixed Hostel</option>
                     <option value="Single Room">Single Room</option>
-                    <option value="Double Sharing">Double Sharing</option>
-                    <option value="Triple Sharing">Triple Sharing</option>
-                    <option value="Four Sharing">Four Sharing</option>
+                <option value="Double Sharing">Double Sharing</option>
+                <option value="Triple Sharing">Triple Sharing</option>
+                <option value="Four Sharing">Four Sharing</option>
                     <option value="Apartment">Apartment</option>
                     <option value="Independent House">Independent House</option>
                     <option value="Flat">Flat</option>
                     <option value="Villa">Villa</option>
-                  </select>
-                </div>
+              </select>
+            </div>
 
-                {/* Address */}
-                <div>
-                  <label className="block font-medium mb-1">
-                    <RenterInfo text="Address *" />
-                  </label>
-                  <input
-                    type="text"
-                    placeholder="Enter a location"
-                    className="w-full border border-gray-300 rounded-md p-2"
-                    value={formData.address}
-                    onChange={(e) =>
-                      setFormData({ ...formData, address: e.target.value })
-                    }
-                  />
-                </div>
+            {/* Address */}
+            <div>
+              <label className="block font-medium mb-1">
+                <RenterInfo text="Address *" />
+              </label>
+              <input
+                type="text"
+                placeholder="Enter a location"
+                className="w-full border border-gray-300 rounded-md p-2"
+                value={formData.address}
+                onChange={(e) =>
+                  setFormData({ ...formData, address: e.target.value })
+                }
+              />
+            </div>
 
-                {/* State */}
-                <div>
-                  <label className="block font-medium mb-1">
-                    <RenterInfo text="State *" />
-                  </label>
-                  <select
-                    className="w-full border border-gray-300 rounded-md p-2"
-                    onChange={(e) => {
-                      handleStateChange(e);
-                      setFormData({ ...formData, state: e.target.value });
-                    }}
-                    value={formData.state}
-                  >
-                    <option value="">
-                      <TranslatedText text="Select State" />
-                    </option>
-                    {State.getStatesOfCountry("IN").map((state) => (
-                      <option key={state.isoCode} value={state.isoCode}>
-                        {state.name}
-                      </option>
-                    ))}
-                  </select>
-                </div>
+            {/* State */}
+            <div>
+              <label className="block font-medium mb-1">
+                <RenterInfo text="State *" />
+              </label>
+              <select
+                className="w-full border border-gray-300 rounded-md p-2"
+                onChange={(e) => {
+                  handleStateChange(e);
+                  setFormData({ ...formData, state: e.target.value });
+                }}
+                value={formData.state}
+              >
+                <option value="">
+                  <TranslatedText text="Select State" />
+                </option>
+                {State.getStatesOfCountry("IN").map((state) => (
+                  <option key={state.isoCode} value={state.isoCode}>
+                    {state.name}
+                  </option>
+                ))}
+              </select>
+            </div>
 
-                {/* City */}
-                <div>
-                  <label className="block font-medium mb-1">
-                    <RenterInfo text="City *" />
-                  </label>
-                  <select
-                    className="w-full border border-gray-300 rounded-md p-2"
-                    value={formData.city}
-                    onChange={(e) =>
-                      setFormData({ ...formData, city: e.target.value })
-                    }
-                  >
-                    <option value="">
-                      <TranslatedText text="Select City" />
-                    </option>
-                    {cities.map((city) => (
-                      <option key={city.name}>{city.name}</option>
-                    ))}
-                  </select>
-                </div>
+            {/* City */}
+            <div>
+              <label className="block font-medium mb-1">
+                <RenterInfo text="City *" />
+              </label>
+              <select
+                className="w-full border border-gray-300 rounded-md p-2"
+                value={formData.city}
+                onChange={(e) =>
+                  setFormData({ ...formData, city: e.target.value })
+                }
+              >
+                <option value="">
+                  <TranslatedText text="Select City" />
+                </option>
+                {cities.map((city) => (
+                  <option key={city.name}>{city.name}</option>
+                ))}
+              </select>
+            </div>
 
-                {/* Postal Code */}
-                <div>
-                  <label className="block font-medium mb-1">
-                    <RenterInfo text="Postal Code *" />
-                  </label>
-                  <input
-                    type="text"
-                    className="w-full border border-gray-300 rounded-md p-2"
-                    value={formData.postalCode}
-                    onChange={(e) =>
-                      setFormData({ ...formData, postalCode: e.target.value })
-                    }
-                  />
-                </div>
+            {/* Postal Code */}
+            <div>
+              <label className="block font-medium mb-1">
+                <RenterInfo text="Postal Code *" />
+              </label>
+              <input
+                type="text"
+                className="w-full border border-gray-300 rounded-md p-2"
+                value={formData.postalCode}
+                onChange={(e) =>
+                  setFormData({ ...formData, postalCode: e.target.value })
+                }
+              />
+            </div>
 
-                {/* Phone */}
-                <div>
-                  <label className="block font-medium mb-1">
-                    <RenterInfo text="Phone *" />
-                  </label>
-                  <input
-                    type="text"
-                    className="w-full border border-gray-300 rounded-md p-2 bg-gray-100 cursor-not-allowed"
-                    placeholder="(XXX) XXX-XXXX"
-                    value={formData.phone}
-                    readOnly
-                    disabled
-                  />
-                </div>
+            {/* Phone */}
+            <div>
+              <label className="block font-medium mb-1">
+                <RenterInfo text="Phone *" />
+              </label>
+              <input
+                type="text"
+                className="w-full border border-gray-300 rounded-md p-2 bg-gray-100 cursor-not-allowed"
+                placeholder="(XXX) XXX-XXXX"
+                value={formData.phone}
+                readOnly
+                disabled
+              />
+            </div>
 
-                {/* Email */}
-                <div>
-                  <label className="block font-medium mb-1">
-                    <RenterInfo text="Contact Email *" />
-                  </label>
-                  <input
-                    type="email"
-                    className="w-full border border-gray-300 rounded-md p-2 bg-gray-100 cursor-not-allowed"
-                    placeholder="example@email.com"
-                    value={formData.email}
-                    readOnly
-                    disabled
-                  />
-                </div>
+            {/* Email */}
+            <div>
+              <label className="block font-medium mb-1">
+                <RenterInfo text="Contact Email *" />
+              </label>
+              <input
+                type="email"
+                className="w-full border border-gray-300 rounded-md p-2 bg-gray-100 cursor-not-allowed"
+                placeholder="example@email.com"
+                value={formData.email}
+                readOnly
+                disabled
+              />
+            </div>
               </div>
             )}
 
@@ -592,84 +592,84 @@ const PropertyForm = ({ propertyType, onBack, editProperty = null }) => {
                   </h4>
                   
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
-                    <div>
-                      <label className="block font-medium mb-1">
-                        <RenterInfo text="Monthly Rent *" />
-                      </label>
-                      <div className="w-full border border-gray-300 rounded-md p-2 flex items-center gap-2">
-                        <span className="text-gray-600">₹</span>
-                        <input
-                          type="text"
-                          className="w-full outline-none"
-                          placeholder="e.g. 6500 per bed"
-                          value={formData.rent}
-                          onChange={(e) =>
-                            setFormData({ ...formData, rent: e.target.value })
-                          }
-                        />
-                      </div>
-                    </div>
+            <div>
+              <label className="block font-medium mb-1">
+                <RenterInfo text="Monthly Rent *" />
+              </label>
+              <div className="w-full border border-gray-300 rounded-md p-2 flex items-center gap-2">
+                <span className="text-gray-600">₹</span>
+                <input
+                  type="text"
+                  className="w-full outline-none"
+                  placeholder="e.g. 6500 per bed"
+                  value={formData.rent}
+                  onChange={(e) =>
+                    setFormData({ ...formData, rent: e.target.value })
+                  }
+                />
+              </div>
+            </div>
 
-                    <div>
-                      <label className="block font-medium mb-1">
-                        <RenterInfo text="Security Deposit *" />
-                      </label>
-                      <input
-                        type="text"
-                        className="w-full border border-gray-300 rounded-md p-2"
-                        placeholder="e.g. 1 month rent / 5000"
-                        value={formData.deposit}
-                        onChange={(e) =>
-                          setFormData({ ...formData, deposit: e.target.value })
-                        }
-                      />
-                    </div>
+            <div>
+              <label className="block font-medium mb-1">
+                <RenterInfo text="Security Deposit *" />
+              </label>
+              <input
+                type="text"
+                className="w-full border border-gray-300 rounded-md p-2"
+                placeholder="e.g. 1 month rent / 5000"
+                value={formData.deposit}
+                onChange={(e) =>
+                  setFormData({ ...formData, deposit: e.target.value })
+                }
+              />
+            </div>
 
-                    <div>
-                      <label className="block font-medium mb-1">
-                        <RenterInfo text="Availability Month *" />
-                      </label>
-                      <select
-                        className="w-full border border-gray-300 rounded-md p-2"
-                        value={formData.availabilityMonth}
-                        onChange={(e) =>
-                          setFormData({
-                            ...formData,
-                            availabilityMonth: e.target.value,
-                          })
-                        }
-                      >
-                        <option value="">
-                          <TranslatedText text="Select Month" />
-                        </option>
-                        {[
-                          "January","February","March","April","May","June",
-                          "July","August","September","October","November","December"
-                        ].map((m) => (
-                          <option key={m}>{m}</option>
-                        ))}
-                      </select>
-                    </div>
+            <div>
+              <label className="block font-medium mb-1">
+                <RenterInfo text="Availability Month *" />
+              </label>
+              <select
+                className="w-full border border-gray-300 rounded-md p-2"
+                value={formData.availabilityMonth}
+                onChange={(e) =>
+                  setFormData({
+                    ...formData,
+                    availabilityMonth: e.target.value,
+                  })
+                }
+              >
+                <option value="">
+                  <TranslatedText text="Select Month" />
+                </option>
+                {[
+                  "January","February","March","April","May","June",
+                  "July","August","September","October","November","December"
+                ].map((m) => (
+                  <option key={m}>{m}</option>
+                ))}
+              </select>
+            </div>
 
-                    <div>
-                      <label className="block font-medium mb-1">
-                        <RenterInfo text="Day *" />
-                      </label>
-                      <select
-                        className="w-full border border-gray-300 rounded-md p-2"
-                        value={formData.availabilityDay}
-                        onChange={(e) =>
-                          setFormData({
-                            ...formData,
-                            availabilityDay: e.target.value,
-                          })
-                        }
-                      >
-                        {[...Array(31)].map((_, i) => (
-                          <option key={i}>{i + 1}</option>
-                        ))}
-                      </select>
-                    </div>
+            <div>
+              <label className="block font-medium mb-1">
+                <RenterInfo text="Day *" />
+              </label>
+              <select
+                className="w-full border border-gray-300 rounded-md p-2"
+                value={formData.availabilityDay}
+                onChange={(e) =>
+                  setFormData({
+                    ...formData,
+                    availabilityDay: e.target.value,
+                  })
+                }
+              >
+                {[...Array(31)].map((_, i) => (
+                  <option key={i}>{i + 1}</option>
+                ))}
+              </select>
+            </div>
                   </div>
                 </div>
               </div>
@@ -686,8 +686,8 @@ const PropertyForm = ({ propertyType, onBack, editProperty = null }) => {
                   </h4>
                   
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
-                    <div>
-                      <label className="block font-medium mb-1">
+            <div>
+              <label className="block font-medium mb-1">
                         <RenterInfo text="Room Size" />
                       </label>
                       <select
@@ -867,20 +867,20 @@ const PropertyForm = ({ propertyType, onBack, editProperty = null }) => {
                     <div>
                       <label className="block font-medium mb-1">
                         <RenterInfo text="Distance to Bus Stop" />
-                      </label>
-                      <input
-                        type="text"
-                        className="w-full border border-gray-300 rounded-md p-2"
+              </label>
+              <input
+                type="text"
+                className="w-full border border-gray-300 rounded-md p-2"
                         placeholder="e.g. 200m, 5 min walk"
                         value={formData.busStopDistance}
-                        onChange={(e) =>
+                onChange={(e) =>
                           setFormData({ ...formData, busStopDistance: e.target.value })
-                        }
-                      />
-                    </div>
+                }
+              />
+            </div>
 
-                    <div>
-                      <label className="block font-medium mb-1">
+              <div>
+                <label className="block font-medium mb-1">
                         <RenterInfo text="Distance to Metro Station" />
                       </label>
                       <input
@@ -1187,39 +1187,39 @@ const PropertyForm = ({ propertyType, onBack, editProperty = null }) => {
                   {editProperty && existingImages.length > 0 && (
                     <div className="mb-4">
                       <label className="block font-medium mb-2">
-                        <RenterInfo text="Current Images" />
-                      </label>
+                  <RenterInfo text="Current Images" />
+                </label>
                       <div className="grid grid-cols-2 gap-2">
-                        {existingImages.map((img, index) => (
-                          <img
-                            key={index}
-                            src={
-                              typeof img === "string"
-                                ? img.startsWith("http")
-                                  ? img
-                                  : `${backendurl}/uploads/${img}`
-                                : img?.url
-                            }
-                            alt={`Room ${index + 1}`}
-                            className="w-full h-32 object-cover rounded"
-                          />
-                        ))}
-                      </div>
-                    </div>
-                  )}
-
-                  <div>
-                    <label className="block font-medium mb-1">
-                      <RenterInfo text={editProperty ? "Add New Images (Optional)" : "Upload Room Images *"} />
-                    </label>
-                    <input
-                      type="file"
-                      multiple
-                      accept="image/*"
-                      className="block w-full text-sm text-gray-700 border border-gray-300 rounded-md p-2 cursor-pointer"
-                      onChange={(e) => setRoomImages(Array.from(e.target.files))}
+                  {existingImages.map((img, index) => (
+                    <img
+                      key={index}
+                      src={
+                        typeof img === "string"
+                          ? img.startsWith("http")
+                            ? img
+                            : `${backendurl}/uploads/${img}`
+                          : img?.url
+                      }
+                      alt={`Room ${index + 1}`}
+                      className="w-full h-32 object-cover rounded"
                     />
-                  </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            <div>
+              <label className="block font-medium mb-1">
+                <RenterInfo text={editProperty ? "Add New Images (Optional)" : "Upload Room Images *"} />
+              </label>
+              <input
+                type="file"
+                multiple
+                accept="image/*"
+                className="block w-full text-sm text-gray-700 border border-gray-300 rounded-md p-2 cursor-pointer"
+                onChange={(e) => setRoomImages(Array.from(e.target.files))}
+              />
+            </div>
                 </div>
               </div>
             )}
@@ -1278,24 +1278,24 @@ const PropertyForm = ({ propertyType, onBack, editProperty = null }) => {
                     <RenterInfo text="Save and Next →" />
                   </button>
                 ) : (
-                  <button
-                    type="submit"
-                    disabled={isLoading}
+              <button
+                type="submit"
+                disabled={isLoading}
                     className={`px-3 sm:px-4 py-2 rounded-md transition text-xs sm:text-sm ${
-                      isLoading 
-                        ? 'bg-gray-400 cursor-not-allowed text-white opacity-70' 
-                        : 'text-white bg-[#3A2C99] hover:bg-white hover:text-black cursor-pointer'
-                    }`}
-                  >
-                    {isLoading ? (
-                      <div className="flex items-center justify-center">
-                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                        <RenterInfo text="Saving..." />
-                      </div>
-                    ) : (
+                  isLoading 
+                    ? 'bg-gray-400 cursor-not-allowed text-white opacity-70' 
+                    : 'text-white bg-[#3A2C99] hover:bg-white hover:text-black cursor-pointer'
+                }`}
+              >
+                {isLoading ? (
+                  <div className="flex items-center justify-center">
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                    <RenterInfo text="Saving..." />
+                  </div>
+                ) : (
                       <RenterInfo text={editProperty ? "Update Property" : "Save Property"} />
-                    )}
-                  </button>
+                )}
+              </button>
                 )}
                 </div>
               </div>

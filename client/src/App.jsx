@@ -11,6 +11,8 @@ import 'react-toastify/dist/ReactToastify.css';
 import StudentProfile from "./pages/StudentProfile";
 import Loader from "./components/Loader";
 import { AppContext } from "./context/Appcontext";
+import { TourProvider } from "./context/TourContext";
+import TourOverlay from "./components/TourOverlay";
 
 
 import AllProperties from "./pages/AllProperties";
@@ -40,10 +42,12 @@ const App = () => {
   }
   
   return (
-    <div>
-      <ToastContainer />
-      <ScrollToTop />
-      <Routes>
+    <TourProvider>
+      <div>
+        <ToastContainer />
+        <ScrollToTop />
+        <TourOverlay />
+        <Routes>
         <Route path='/' element={<Home/>} />
         <Route path='/home' element={<Home/>}/>
         <Route
@@ -113,9 +117,10 @@ const App = () => {
        
 
 
-      </Routes>
-      {!shouldHideFooter && <Footer />}
-    </div>
+        </Routes>
+        {!shouldHideFooter && <Footer />}
+      </div>
+    </TourProvider>
   );
 }
 

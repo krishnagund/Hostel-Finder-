@@ -7,6 +7,7 @@ import PropertyForm from "./PropertyForm";
 import PropertyTypeSelection from "./PropertyTypeSelection"; 
 import { AppContext } from "../context/Appcontext";
 import RenterInfo from "./RenterInfo";
+import TourTrigger from "./TourTrigger";
 
 const HostelOwnerHome = () => {
   const [activeTab, setActiveTab] = useState("listings");
@@ -91,6 +92,10 @@ const HostelOwnerHome = () => {
         }}
         setSelectedPropertyType={setSelectedPropertyType}
       />
+      {/* Tour Trigger Button - Fixed Position for existing users */}
+      <div className="fixed bottom-4 right-4 z-40">
+        <TourTrigger tourName="ownerDashboard" variant="icon" />
+      </div>
       <div className="max-w-7xl mx-auto">
         {renderTabContent()}
       </div>
